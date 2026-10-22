@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+build/
+.vite/
+coverage/
+.vercel/
+
+server/data/adminUser.json
+
+server/uploads/

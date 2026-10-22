@@ -1,0 +1,75 @@
+.admin-dashboard :is(input, textarea).bg-midnight-elevated {
+  color: #e2e8f0;
+}
+
+.admin-dashboard :is(input, textarea).bg-midnight-elevated::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.admin-dashboard :is(input, textarea):is(
+  .admin-control-light,
+  .bg-white,
+  .bg-gray-50,
+  .bg-gray-100,
+  .bg-gray-200,
+  .bg-slate-50,
+  .bg-slate-100,
+  .bg-slate-200,
+  .bg-zinc-50,
+  .bg-zinc-100,
+  .bg-zinc-200,
+  .bg-neutral-50,
+  .bg-neutral-100,
+  .bg-neutral-200,
+  .bg-stone-50,
+  .bg-stone-100,
+  .bg-stone-200
+) {
+  color: #172033;
+}
+
+.admin-dashboard :is(input, textarea):is(
+  .admin-control-light,
+  .bg-white,
+  .bg-gray-50,
+  .bg-gray-100,
+  .bg-gray-200,
+  .bg-slate-50,
+  .bg-slate-100,
+  .bg-slate-200,
+  .bg-zinc-50,
+  .bg-zinc-100,
+  .bg-zinc-200,
+  .bg-neutral-50,
+  .bg-neutral-100,
+  .bg-neutral-200,
+  .bg-stone-50,
+  .bg-stone-100,
+  .bg-stone-200
+)::placeholder {
+  color: #7b8494;
+  opacity: 1;
+}
+
+.admin-dashboard :is(input, textarea):is(
+  .admin-control-light,
+  .bg-white,
+  .bg-gray-50,
+  .bg-gray-100,
+  .bg-gray-200,
+  .bg-slate-50,
+  .bg-slate-100,
+  .bg-slate-200,
+  .bg-zinc-50,
+  .bg-zinc-100,
+  .bg-zinc-200,
+  .bg-neutral-50,
+  .bg-neutral-100,
+  .bg-neutral-200,
+  .bg-stone-50,
+  .bg-stone-100,
+  .bg-stone-200
+):autofill {
+  -webkit-text-fill-color: #172033;
+}

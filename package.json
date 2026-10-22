@@ -1,0 +1,14 @@
+{
+  "name": "sana-fatma-portfolio",
+  "version": "1.0.0",
+  "description": "Sana Fatma's Dynamic AI-Powered Developer Portfolio",
+  "scripts": {
+    "dev": "npm --prefix client run dev",
+    "dev:client": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server run dev",
+    "build": "npm --prefix client run build",
+    "build:client": "npm --prefix client run build",
+    "install:all": "npm install --prefix client && npm install --prefix server",
+    "start": "npm --prefix server start"
+  }
+}
