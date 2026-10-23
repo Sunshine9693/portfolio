@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import {
   Shield, LogOut, ArrowLeft, Save, Upload, Trash2,
-  CheckCircle2, AlertCircle, FileText, Eye, Key, User, Lock
+  CheckCircle2, AlertCircle, FileText, Eye, Key, User, Lock, Image as ImageIcon
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePortfolio } from '../../context/PortfolioContext';
@@ -30,6 +30,13 @@ export const AdminDashboard = () => {
   const [aboutForm, setAboutForm] = useState(null);
   const [skillsForm, setSkillsForm] = useState([]);
   const [projectsForm, setProjectsForm] = useState([]);
+  const [certificateFile, setCertificateFile] = useState(null);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [certificateDraft, setCertificateDraft] = useState({ title: '', issuer: '', date: '', description: '', credentialUrl: '' });
+  const [photoDraft, setPhotoDraft] = useState({ title: '', caption: '', category: '' });
+  const [photoPreview, setPhotoPreview] = useState('');
+  const certificateFileInput = useRef(null);
+  const photoFileInput = useRef(null);
   const [messages, setMessages] = useState([]);
 
   // Toast feedback
@@ -45,6 +52,12 @@ export const AdminDashboard = () => {
       setProjectsForm(portfolioData.projects || []);
     }
   }, [portfolioData]);
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
 
   // Load contact messages when inbox tab is active
   useEffect(() => {
@@ -138,6 +151,136 @@ export const AdminDashboard = () => {
     } else {
       showToast('error', res.message || 'Update failed');
     }
+  };
+
+  const uploadAndSaveMedia = async ({ event, file, kind, section, item, onSaved }) => {
+    event.preventDefault();
+    if (!file) {
+      showToast('error', `Choose a ${kind === 'photo' ? 'photo' : 'certificate file'} first.`);
+      return;
+    }
+
+    setIsSaving(true);
+    let fileUrl;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadResponse = await axios.post(`/api/content/media/${kind}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      fileUrl = uploadResponse.data?.fileUrl;
+      if (!uploadResponse.data?.success || !fileUrl) {
+        throw new Error(uploadResponse.data?.message || 'The file could not be uploaded.');
+      }
+
+      const savedItem = section === 'gallery'
+        ? { ...item, url: fileUrl }
+        : { ...item, fileUrl };
+      const result = await updateSectionData(
+        section,
+        [...(portfolioData?.[section] || []), savedItem],
+        token
+      );
+      if (!result.success) {
+        throw new Error(result.message || 'The uploaded item could not be saved.');
+      }
+
+      onSaved();
+      await refreshData();
+      showToast('success', `${kind === 'photo' ? 'Photo' : 'Certificate'} added successfully.`);
+    } catch (error) {
+      if (fileUrl) {
+        try {
+          await axios.delete(`/api/content/upload/${encodeURIComponent(fileUrl.split('/').pop())}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        } catch (cleanupError) {
+          console.error('Could not clean up an unsaved upload:', cleanupError);
+        }
+      }
+      showToast('error', error.response?.data?.message || error.message || 'Could not save the uploaded file.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAddCertificate = (event) => {
+    uploadAndSaveMedia({
+      event,
+      file: certificateFile,
+      kind: 'certificate',
+      section: 'certificates',
+      item: {
+        id: `certificate-${Date.now()}`,
+        ...certificateDraft,
+        fileType: certificateFile?.type || '',
+        verified: true
+      },
+      onSaved: () => {
+        setCertificateDraft({ title: '', issuer: '', date: '', description: '', credentialUrl: '' });
+        setCertificateFile(null);
+        if (certificateFileInput.current) certificateFileInput.current.value = '';
+      }
+    });
+  };
+
+  const handleAddPhoto = (event) => {
+    uploadAndSaveMedia({
+      event,
+      file: photoFile,
+      kind: 'photo',
+      section: 'gallery',
+      item: {
+        id: `photo-${Date.now()}`,
+        type: 'photo',
+        title: photoDraft.title,
+        caption: photoDraft.caption,
+        category: photoDraft.category,
+      },
+      onSaved: () => {
+        setPhotoDraft({ title: '', caption: '', category: '' });
+        setPhotoFile(null);
+        if (photoFileInput.current) photoFileInput.current.value = '';
+      }
+    });
+  };
+
+  const handleDeleteMediaItem = async (section, item, label) => {
+    if (!window.confirm(`Delete this ${label.toLowerCase()} from your portfolio?`)) return;
+
+    const currentItems = portfolioData?.[section] || [];
+    const updatedItems = currentItems.filter((entry) => entry.id !== item.id);
+    setIsSaving(true);
+    const result = await updateSectionData(section, updatedItems, token);
+    if (!result.success) {
+      setIsSaving(false);
+      showToast('error', result.message || `Could not delete the ${label.toLowerCase()}.`);
+      return;
+    }
+
+    let cleanupMessage = '';
+    const fileUrl = section === 'certificates' ? item.fileUrl : (item.url || item.fileUrl);
+    if (fileUrl?.startsWith('/uploads/')) {
+      try {
+        await axios.delete(`/api/content/upload/${encodeURIComponent(fileUrl.split('/').pop())}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } catch (error) {
+        cleanupMessage = error.response?.data?.message || 'The uploaded file could not be removed.';
+      }
+    }
+
+    await refreshData();
+    setIsSaving(false);
+    showToast(
+      cleanupMessage ? 'error' : 'success',
+      cleanupMessage
+        ? `${label} removed from the portfolio, but its file remains: ${cleanupMessage}`
+        : `${label} deleted successfully.`
+    );
   };
 
   const deleteMessageItem = async (id) => {
@@ -412,6 +555,7 @@ export const AdminDashboard = () => {
             { id: 'about', label: 'About & Voice Script' },
             { id: 'skills', label: 'Skills Matrix' },
             { id: 'projects', label: 'Projects Showcase' },
+            { id: 'media', label: 'Certificates & Photos' },
             { id: 'inbox', label: `Inquiries (${messages.length})` },
           ].map((tab) => (
             <button
@@ -749,6 +893,232 @@ export const AdminDashboard = () => {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* TAB 5: CERTIFICATES & PHOTOS */}
+        {activeTab === 'media' && (
+          <div className="mt-8 space-y-10 max-w-6xl">
+            <section className="space-y-5">
+              <div>
+                <h2 className="font-heading text-2xl text-slate-main tracking-wide uppercase">
+                  CERTIFICATE MANAGEMENT
+                </h2>
+                <p className="font-sans text-xs text-slate-muted mt-1">
+                  Add PDF or image certificates. New certificates appear in the public Certificates section.
+                </p>
+              </div>
+
+              <form onSubmit={handleAddCertificate} className="card-dev rounded-3xl p-6 sm:p-8 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-mono-tech text-xs text-slate-muted block mb-1">Certificate title *</label>
+                    <input
+                      value={certificateDraft.title}
+                      onChange={(e) => setCertificateDraft({ ...certificateDraft, title: e.target.value })}
+                      required
+                      maxLength={160}
+                      className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono-tech text-xs text-slate-muted block mb-1">Issuer</label>
+                    <input
+                      value={certificateDraft.issuer}
+                      onChange={(e) => setCertificateDraft({ ...certificateDraft, issuer: e.target.value })}
+                      maxLength={120}
+                      className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono-tech text-xs text-slate-muted block mb-1">Date</label>
+                    <input
+                      value={certificateDraft.date}
+                      onChange={(e) => setCertificateDraft({ ...certificateDraft, date: e.target.value })}
+                      placeholder="e.g. October 2026"
+                      maxLength={80}
+                      className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono-tech text-xs text-slate-muted block mb-1">Credential URL</label>
+                    <input
+                      type="url"
+                      value={certificateDraft.credentialUrl}
+                      onChange={(e) => setCertificateDraft({ ...certificateDraft, credentialUrl: e.target.value })}
+                      placeholder="Optional verification link"
+                      className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="font-mono-tech text-xs text-slate-muted block mb-1">Description</label>
+                  <textarea
+                    rows={2}
+                    value={certificateDraft.description}
+                    onChange={(e) => setCertificateDraft({ ...certificateDraft, description: e.target.value })}
+                    maxLength={1000}
+                    className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan resize-y"
+                  />
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <input
+                    ref={certificateFileInput}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
+                    onChange={(e) => setCertificateFile(e.target.files?.[0] || null)}
+                    required
+                    className="w-full text-xs text-slate-muted file:mr-3 file:px-4 file:py-2 file:rounded-xl file:border-0 file:bg-midnight-elevated file:text-slate-main file:font-mono-tech"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="btn-primary shrink-0 px-5 py-2 rounded-xl text-xs font-mono-tech font-bold uppercase flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {isSaving ? 'Uploading...' : 'Add Certificate'}
+                  </button>
+                </div>
+                <p className="font-mono-tech text-[10px] text-slate-muted">PDF, JPG, PNG, or WebP · 15 MB maximum</p>
+              </form>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(portfolioData?.certificates || []).map((certificate, index) => {
+                  const isImage = certificate.fileType?.startsWith('image/')
+                    || /\.(jpe?g|png|webp)(?:$|\?)/i.test(certificate.fileUrl || '');
+                  return (
+                    <article key={certificate.id || index} className="card-dev rounded-2xl p-4 flex items-center gap-4 min-w-0">
+                      <div className="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-midnight-elevated border border-midnight-border flex items-center justify-center">
+                        {isImage && certificate.fileUrl
+                          ? <img src={certificate.fileUrl} alt={certificate.title} className="w-full h-full object-cover" />
+                          : <FileText className="w-7 h-7 text-cyan" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-heading text-lg text-slate-main uppercase truncate">{certificate.title}</h3>
+                        <p className="font-mono-tech text-[10px] text-slate-muted truncate">
+                          {[certificate.issuer, certificate.date].filter(Boolean).join(' · ') || 'Certificate'}
+                        </p>
+                        {certificate.fileUrl && (
+                          <a href={certificate.fileUrl} target="_blank" rel="noopener noreferrer" className="font-mono-tech text-[10px] text-cyan hover:underline">
+                            Preview file
+                          </a>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteMediaItem('certificates', certificate, 'Certificate')}
+                        disabled={isSaving}
+                        aria-label={`Delete ${certificate.title}`}
+                        className="p-2 text-slate-muted hover:text-rose-400 border border-midnight-border rounded-xl disabled:opacity-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="space-y-5 border-t border-midnight-border pt-8">
+              <div>
+                <h2 className="font-heading text-2xl text-slate-main tracking-wide uppercase">
+                  PHOTO GALLERY MANAGEMENT
+                </h2>
+                <p className="font-sans text-xs text-slate-muted mt-1">
+                  Upload JPG, PNG, or WebP photos. Gallery changes are published automatically.
+                </p>
+              </div>
+
+              <form onSubmit={handleAddPhoto} className="card-dev rounded-3xl p-6 sm:p-8 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-mono-tech text-xs text-slate-muted block mb-1">Photo title *</label>
+                    <input
+                      value={photoDraft.title}
+                      onChange={(e) => setPhotoDraft({ ...photoDraft, title: e.target.value })}
+                      required
+                      maxLength={160}
+                      className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono-tech text-xs text-slate-muted block mb-1">Category</label>
+                    <input
+                      value={photoDraft.category}
+                      onChange={(e) => setPhotoDraft({ ...photoDraft, category: e.target.value })}
+                      maxLength={80}
+                      placeholder="e.g. Events, Projects"
+                      className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="font-mono-tech text-xs text-slate-muted block mb-1">Caption</label>
+                  <textarea
+                    rows={2}
+                    value={photoDraft.caption}
+                    onChange={(e) => setPhotoDraft({ ...photoDraft, caption: e.target.value })}
+                    maxLength={500}
+                    className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan resize-y"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_160px] gap-4 items-center">
+                  <input
+                    ref={photoFileInput}
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                    onChange={(e) => {
+                      const selectedFile = e.target.files?.[0] || null;
+                      setPhotoFile(selectedFile);
+                      setPhotoPreview(selectedFile ? URL.createObjectURL(selectedFile) : '');
+                    }}
+                    required
+                    className="w-full text-xs text-slate-muted file:mr-3 file:px-4 file:py-2 file:rounded-xl file:border-0 file:bg-midnight-elevated file:text-slate-main file:font-mono-tech"
+                  />
+                  {photoPreview && (
+                    <img src={photoPreview} alt="Selected photo preview" className="w-full h-28 rounded-xl object-cover border border-midnight-border" />
+                  )}
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <p className="font-mono-tech text-[10px] text-slate-muted">JPG, PNG, or WebP · 15 MB maximum</p>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="btn-primary px-5 py-2 rounded-xl text-xs font-mono-tech font-bold uppercase flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <ImageIcon className="w-4 h-4" />
+                    {isSaving ? 'Uploading...' : 'Add Photo'}
+                  </button>
+                </div>
+              </form>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {(portfolioData?.gallery || [])
+                  .filter((item) => (item.type || 'photo') === 'photo')
+                  .map((photo, index) => (
+                    <article key={photo.id || index} className="card-dev rounded-2xl overflow-hidden min-w-0">
+                      <div className="aspect-[4/3] bg-midnight-elevated">
+                        <img src={photo.url} alt={photo.title || 'Portfolio photo'} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="p-4 flex items-start gap-3">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-heading text-lg text-slate-main uppercase truncate">{photo.title || 'Untitled photo'}</h3>
+                          <p className="font-sans text-xs text-slate-muted line-clamp-2">{photo.caption}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMediaItem('gallery', photo, 'Photo')}
+                          disabled={isSaving}
+                          aria-label={`Delete ${photo.title || 'photo'}`}
+                          className="p-2 text-slate-muted hover:text-rose-400 border border-midnight-border rounded-xl disabled:opacity-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+              </div>
+            </section>
           </div>
         )}
 

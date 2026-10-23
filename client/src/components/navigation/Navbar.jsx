@@ -57,7 +57,7 @@ export const Navbar = ({ onTriggerNarration, isNarrating }) => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-4 sm:pt-6 pointer-events-none">
       <nav
-        className={`pointer-events-auto transition-all duration-300 w-full max-w-6xl rounded-full px-4 sm:px-6 py-3 flex items-center justify-between ${
+        className={`pointer-events-auto transition-all duration-300 w-full max-w-7xl rounded-full px-4 sm:px-6 py-3 flex items-center justify-between ${
           isScrolled
             ? 'bg-midnight-surface/90 backdrop-blur-md border border-midnight-border shadow-card-dev'
             : 'bg-midnight-surface/60 backdrop-blur-sm border border-midnight-border/60'
@@ -84,7 +84,7 @@ export const Navbar = ({ onTriggerNarration, isNarrating }) => {
 
         {/* Desktop Navigation Links */}
         {isHome && (
-          <ul className="hidden lg:flex items-center gap-1 xl:gap-2">
+          <ul className="hidden xl:flex items-center gap-2 xl:gap-3">
             {navItems.map((item) => {
               const isActive = activeSection === item.id;
               return (
@@ -92,7 +92,7 @@ export const Navbar = ({ onTriggerNarration, isNarrating }) => {
                   <a
                     href={item.href}
                     onClick={(e) => handleNavClick(e, item.href)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-mono-tech uppercase tracking-wider transition-all duration-200 ${
+                    className={`px-2.5 py-2 rounded-full text-xs font-mono-tech uppercase tracking-wider transition-all duration-200 ${
                       isActive
                         ? 'bg-cyan text-midnight font-bold shadow-glow-cyan'
                         : 'text-slate-muted hover:text-cyan hover:bg-white/5'
@@ -149,7 +149,7 @@ export const Navbar = ({ onTriggerNarration, isNarrating }) => {
           {isHome && (
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-full text-slate-main hover:text-cyan border border-midnight-border"
+              className="xl:hidden p-2 rounded-full text-slate-main hover:text-cyan border border-midnight-border"
               aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -160,7 +160,7 @@ export const Navbar = ({ onTriggerNarration, isNarrating }) => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="pointer-events-auto fixed inset-x-4 top-20 bg-midnight-surface/95 backdrop-blur-xl border border-midnight-border rounded-3xl p-6 shadow-2xl flex flex-col gap-4 lg:hidden z-50 max-h-[80vh] overflow-y-auto text-left">
+        <div className="pointer-events-auto fixed inset-x-4 top-20 bg-midnight-surface/95 backdrop-blur-xl border border-midnight-border rounded-3xl p-6 shadow-2xl flex flex-col gap-4 xl:hidden z-50 max-h-[80vh] overflow-y-auto text-left">
           <div className="flex items-center justify-between pb-3 border-b border-midnight-border">
             <span className="font-heading tracking-widest text-lg text-slate-main">NAVIGATION</span>
             <button

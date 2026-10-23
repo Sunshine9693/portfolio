@@ -263,8 +263,8 @@
         "Database: MongoDB Atlas storing notes, reminders, and user state",
         "Client-Server: Secure Axios HTTP communication with JWT session tokens"
       ],
-      "githubUrl": "https://github.com/sanathesunshine",
-      "liveUrl": "",
+      "githubUrl": "https://github.com/Sunshine9693/mine_project.git",
+      "liveUrl": "https://mine-project-nu.vercel.app/",
       "imageUrl": "/images/hero.png"
     },
     {
@@ -298,7 +298,7 @@
         "Local state management for cart synchronization across views",
         "Tailwind CSS design system with custom brand color tokens"
       ],
-      "githubUrl": "https://github.com/sanathesunshine",
+      "githubUrl": "https://github.com/Sunshine9693/Snapshoes.git",
       "liveUrl": "",
       "imageUrl": "/images/hero.png"
     },
@@ -366,7 +366,7 @@
         "Modular JS pattern separating Data Store, UI Renderer, and Event Listeners",
         "LocalStorage synchronization hook on every create, edit, or delete action"
       ],
-      "githubUrl": "https://github.com/sanathesunshine",
+      "githubUrl": "https://github.com/Sunshine9693/Intelligent-Task-Management-System.git",
       "liveUrl": "",
       "imageUrl": "/images/hero.png"
     },
@@ -399,7 +399,7 @@
         "HTML5 Audio API event listeners (timeupdate, loadedmetadata, ended)",
         "CSS transition timeline with dynamic width calculations"
       ],
-      "githubUrl": "https://github.com/sanathesunshine",
+      "githubUrl": "https://github.com/Sunshine9693/Spotify-Clone.git",
       "liveUrl": "",
       "imageUrl": "/images/hero.png"
     }

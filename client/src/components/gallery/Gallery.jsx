@@ -49,8 +49,8 @@ export const Gallery = ({ certificatesData, galleryData }) => {
     }
   ];
 
-  const certificates = certificatesData && certificatesData.length > 0 ? certificatesData : defaultCertificates;
-  const gallery = galleryData && galleryData.length > 0 ? galleryData : defaultGallery;
+  const certificates = Array.isArray(certificatesData) ? certificatesData : defaultCertificates;
+  const gallery = Array.isArray(galleryData) ? galleryData : defaultGallery;
 
   const categories = ['All', 'Certificates', 'Photos'];
 
@@ -131,7 +131,13 @@ export const Gallery = ({ certificatesData, galleryData }) => {
 
                     {cert.fileUrl && (
                       <button
-                        onClick={() => setActivePreview({ type: 'pdf', url: cert.fileUrl, title: cert.title })}
+                        onClick={() => setActivePreview({
+                          type: cert.fileType?.startsWith('image/') || /\.(jpe?g|png|webp)(?:$|\?)/i.test(cert.fileUrl)
+                            ? 'image'
+                            : 'pdf',
+                          url: cert.fileUrl,
+                          title: cert.title
+                        })}
                         className="btn-secondary px-3.5 py-1.5 rounded-lg text-xs font-mono-tech flex items-center gap-1.5 hover:border-cyan/50 hover:text-cyan"
                       >
                         <Eye className="w-3.5 h-3.5" />

@@ -64,7 +64,7 @@ class SpeechCoordinator {
   }
 
   speak({ text, source, onStart, onEnd, onBoundary, onError, rate = 0.98, pitch = 1.05 }) {
-    if (!('speechSynthesis' in window)) return;
+    if (!('speechSynthesis' in window)) return false;
 
     // Immediately stop any active speech from any source
     this.stop();
@@ -79,11 +79,13 @@ class SpeechCoordinator {
     utterance.pitch = pitch;
 
     utterance.onstart = (e) => {
+      if (this.currentUtterance !== utterance) return;
       this.notify({ type: 'start', source });
       if (onStart) onStart(e);
     };
 
     utterance.onend = (e) => {
+      if (this.currentUtterance !== utterance) return;
       this.currentSource = null;
       this.currentUtterance = null;
       this.notify({ type: 'end', source });
@@ -91,6 +93,7 @@ class SpeechCoordinator {
     };
 
     utterance.onerror = (e) => {
+      if (this.currentUtterance !== utterance) return;
       this.currentSource = null;
       this.currentUtterance = null;
       this.notify({ type: 'error', source, error: e });
@@ -98,21 +101,35 @@ class SpeechCoordinator {
     };
 
     if (onBoundary) {
-      utterance.onboundary = onBoundary;
+      utterance.onboundary = (e) => {
+        if (this.currentUtterance === utterance) onBoundary(e);
+      };
     }
 
-    window.speechSynthesis.speak(utterance);
+    try {
+      window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      this.currentSource = null;
+      this.currentUtterance = null;
+      this.notify({ type: 'error', source, error });
+      if (onError) onError(error);
+      return false;
+    }
+
+    return true;
   }
 
   stop(source) {
     if (!('speechSynthesis' in window)) return;
-    if (this.currentSource) {
-      const prevSource = this.currentSource;
-      window.speechSynthesis.cancel();
-      this.currentSource = null;
-      this.currentUtterance = null;
-      this.notify({ type: 'stop', source: prevSource });
+    if (source && this.currentSource !== source) return;
+    const prevSource = this.currentSource;
+    window.speechSynthesis.cancel();
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
     }
+    this.currentSource = null;
+    this.currentUtterance = null;
+    if (prevSource) this.notify({ type: 'stop', source: prevSource });
   }
 
   pause() {

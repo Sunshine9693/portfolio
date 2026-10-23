@@ -1,7 +1,19 @@
 import React from 'react';
 import { Volume2, Sparkles, Bot } from 'lucide-react';
 
-export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText }) => {
+export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText, autoplayBlocked, playbackState }) => {
+  const statusText = isSpeaking
+    ? 'AURA Speaking'
+    : isPaused
+      ? 'Paused'
+      : playbackState === 'completed'
+        ? 'Introduction complete'
+        : playbackState === 'stopped'
+          ? 'Introduction stopped'
+          : autoplayBlocked
+            ? 'Tap to begin'
+            : 'Ready to introduce';
+
   return (
     <div className="relative flex flex-col items-center select-none">
       {/* Speech Bubble */}
@@ -25,7 +37,7 @@ export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText }) =>
               <span className="text-amber-300 font-mono-tech text-[10px]">Paused</span>
             )}
             {!isSpeaking && !isPaused && (
-              <span className="text-slate-muted text-[10px]">Ready to introduce</span>
+              <span className="text-slate-muted text-[10px]">{statusText}</span>
             )}
           </div>
 
@@ -39,9 +51,21 @@ export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText }) =>
               <span className="text-slate-muted italic">
                 Narration paused. Click Resume to continue listening.
               </span>
+            ) : playbackState === 'completed' ? (
+              <span className="text-slate-muted italic">
+                Introduction complete. Replay it whenever you like.
+              </span>
+            ) : playbackState === 'stopped' ? (
+              <span className="text-slate-muted italic">
+                Introduction stopped. Press Play Introduction to listen again.
+              </span>
+            ) : autoplayBlocked ? (
+              <span>
+                Automatic audio didn't start. Tap <span className="text-violet font-semibold">Play Introduction</span> to hear Sana's background.
+              </span>
             ) : (
               <span>
-                "Hi! Let me introduce you to <strong className="text-cyan font-semibold">Sana</strong>. Click <span className="text-violet font-semibold">Play Introduction</span> below to hear her background."
+                "Hi! Let me introduce you to <strong className="text-cyan font-semibold">Sana</strong>. Her introduction will begin automatically when your browser allows."
               </span>
             )}
           </p>
@@ -198,7 +222,7 @@ export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText }) =>
         {/* Small Floating Status Badge */}
         <div className="absolute -bottom-2 px-3 py-1 rounded-full bg-midnight-elevated border border-cyan/50 text-[10px] font-mono-tech text-cyan flex items-center gap-1.5 shadow-sm">
           <span className={`w-2 h-2 rounded-full ${isSpeaking ? 'bg-cyan animate-ping' : 'bg-emerald-accent'}`} />
-          <span>{isSpeaking ? 'AURA Speaking' : 'AURA Online'}</span>
+          <span>{statusText}</span>
         </div>
       </div>
     </div>

@@ -1,12 +1,39 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, RotateCcw, Square, Volume2, Sparkles, Layers, Brain, Code, CheckCircle2 } from 'lucide-react';
 import { FemaleAIAvatar } from './FemaleAIAvatar';
 import { speechCoordinator } from '../../services/speechCoordinator';
 
+let hasAttemptedIntroductionAutoplay = false;
+const autoplayStatusKey = 'aura-introduction-autoplay-status';
+
+const getStoredAutoplayStatus = () => {
+  try {
+    return window.sessionStorage.getItem(autoplayStatusKey);
+  } catch {
+    return null;
+  }
+};
+
+const storeAutoplayStatus = (status) => {
+  try {
+    window.sessionStorage.setItem(autoplayStatusKey, status);
+  } catch {
+    // The in-memory guard still prevents duplicate attempts when storage is unavailable.
+  }
+};
+
 export const About = ({ aboutData }) => {
-  const [playbackState, setPlaybackState] = useState('idle'); // 'idle' | 'speaking' | 'paused'
+  const [playbackState, setPlaybackState] = useState(() => {
+    const previousStatus = getStoredAutoplayStatus();
+    return previousStatus === 'completed' || previousStatus === 'stopped' ? previousStatus : 'idle';
+  });
   const [activeSentenceIndex, setActiveSentenceIndex] = useState(-1);
   const [currentSentenceText, setCurrentSentenceText] = useState('');
+  const [autoplayBlocked, setAutoplayBlocked] = useState(() =>
+    ['attempted', 'blocked', 'started'].includes(getStoredAutoplayStatus())
+  );
+  const narrationRunRef = useRef(0);
+  const autoplayTimerRef = useRef(null);
 
   const defaultNarration =
     "Hi! Let me introduce you to Sana Fatma. She is a Computer Science and Engineering undergraduate at Maulana Azad National Urdu University, graduating in 2027. Sana is passionate about web development, software engineering, and artificial intelligence. She has worked on projects including AURA, her personalized AI assistant, and SnapShoes, an e-commerce application. Through internships and personal projects, she continues to develop her programming, frontend, backend, and problem-solving skills. Explore her projects to discover what she is building, and feel free to connect with her about relevant opportunities.";
@@ -27,10 +54,24 @@ export const About = ({ aboutData }) => {
         setPlaybackState('idle');
         setActiveSentenceIndex(-1);
         setCurrentSentenceText('');
-      } else if (event.type === 'end' || event.type === 'stop') {
+      } else if (event.type === 'stop') {
+        setPlaybackState('stopped');
+        setActiveSentenceIndex(-1);
+        setCurrentSentenceText('');
+        storeAutoplayStatus('stopped');
+      } else if (event.type === 'end') {
+        setPlaybackState('completed');
+        setActiveSentenceIndex(-1);
+        setCurrentSentenceText('');
+        storeAutoplayStatus('completed');
+      } else if (event.type === 'start') {
+        setPlaybackState('speaking');
+      } else if (event.type === 'error') {
         setPlaybackState('idle');
         setActiveSentenceIndex(-1);
         setCurrentSentenceText('');
+        setAutoplayBlocked(true);
+        storeAutoplayStatus('blocked');
       } else if (event.type === 'pause') {
         setPlaybackState('paused');
       } else if (event.type === 'resume') {
@@ -40,11 +81,24 @@ export const About = ({ aboutData }) => {
 
     return () => {
       unsubscribe();
+      window.clearTimeout(autoplayTimerRef.current);
       speechCoordinator.stop('about');
     };
   }, []);
 
-  const startNarration = () => {
+  const startNarration = useCallback((autoplay = false) => {
+    const runId = ++narrationRunRef.current;
+    window.clearTimeout(autoplayTimerRef.current);
+    setAutoplayBlocked(false);
+    storeAutoplayStatus('attempted');
+
+    if (!('speechSynthesis' in window)) {
+      setPlaybackState('idle');
+      setAutoplayBlocked(true);
+      storeAutoplayStatus('blocked');
+      return false;
+    }
+
     let charOffset = 0;
     const sentenceOffsets = sentences.map((s) => {
       const start = narrationScript.indexOf(s, charOffset);
@@ -52,68 +106,130 @@ export const About = ({ aboutData }) => {
       return { start, end: charOffset, text: s };
     });
 
-    speechCoordinator.speak({
+    let started = false;
+    if (autoplay) {
+      autoplayTimerRef.current = window.setTimeout(() => {
+        if (narrationRunRef.current !== runId || started) return;
+        narrationRunRef.current += 1;
+        speechCoordinator.stop('about');
+        setPlaybackState('idle');
+        setAutoplayBlocked(true);
+        storeAutoplayStatus('blocked');
+      }, 5000);
+    }
+
+    const didQueueSpeech = speechCoordinator.speak({
       text: narrationScript,
       source: 'about',
       rate: 0.96,
       pitch: 1.05,
       onStart: () => {
+        if (narrationRunRef.current !== runId) return;
+        started = true;
+        window.clearTimeout(autoplayTimerRef.current);
         setPlaybackState('speaking');
+        setAutoplayBlocked(false);
+        storeAutoplayStatus('started');
         setActiveSentenceIndex(0);
-        setCurrentSentenceText(sentences[0]);
+        setCurrentSentenceText(sentences[0] || '');
       },
-      onBoundary: (e) => {
-        if (e.name === 'sentence' || e.name === 'word') {
-          const charIdx = e.charIndex;
+      onBoundary: (event) => {
+        if (narrationRunRef.current !== runId) return;
+        if (event.name === 'sentence' || event.name === 'word') {
           const current = sentenceOffsets.find(
-            (range) => charIdx >= range.start && charIdx <= range.end
+            (range) => event.charIndex >= range.start && event.charIndex <= range.end
           );
           if (current) {
-            const idx = sentenceOffsets.indexOf(current);
-            setActiveSentenceIndex(idx);
+            setActiveSentenceIndex(sentenceOffsets.indexOf(current));
             setCurrentSentenceText(current.text);
           }
         }
       },
       onEnd: () => {
-        setPlaybackState('idle');
+        if (narrationRunRef.current !== runId) return;
+        window.clearTimeout(autoplayTimerRef.current);
+        setPlaybackState('completed');
         setActiveSentenceIndex(-1);
         setCurrentSentenceText('');
+        storeAutoplayStatus('completed');
       },
       onError: () => {
+        if (narrationRunRef.current !== runId) return;
+        window.clearTimeout(autoplayTimerRef.current);
         setPlaybackState('idle');
+        setAutoplayBlocked(true);
         setActiveSentenceIndex(-1);
         setCurrentSentenceText('');
+        storeAutoplayStatus('blocked');
       }
     });
-  };
+
+    if (!didQueueSpeech) {
+      window.clearTimeout(autoplayTimerRef.current);
+      setPlaybackState('idle');
+      setAutoplayBlocked(true);
+      storeAutoplayStatus('blocked');
+      return false;
+    }
+
+    return true;
+  }, [narrationScript, sentences]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const previousStatus = getStoredAutoplayStatus();
+      if (hasAttemptedIntroductionAutoplay || previousStatus) {
+        hasAttemptedIntroductionAutoplay = true;
+        setAutoplayBlocked(['attempted', 'blocked', 'started'].includes(previousStatus));
+        return;
+      }
+      hasAttemptedIntroductionAutoplay = true;
+      storeAutoplayStatus('attempted');
+      startNarration(true);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [startNarration]);
 
   const pauseNarration = () => {
     speechCoordinator.pause();
-    setPlaybackState('paused');
   };
 
   const resumeNarration = () => {
     speechCoordinator.resume();
-    setPlaybackState('speaking');
   };
 
   const stopNarration = () => {
+    narrationRunRef.current += 1;
+    window.clearTimeout(autoplayTimerRef.current);
     speechCoordinator.stop('about');
-    setPlaybackState('idle');
+    setPlaybackState('stopped');
     setActiveSentenceIndex(-1);
     setCurrentSentenceText('');
+    storeAutoplayStatus('stopped');
   };
 
   const replayNarration = () => {
-    stopNarration();
-    setTimeout(() => {
-      startNarration();
-    }, 150);
+    startNarration();
   };
 
   return (
     <section id="about" className="relative py-24 px-4 sm:px-6 lg:px-8 border-t border-midnight-border bg-midnight-surface/50">
+      {autoplayBlocked && playbackState === 'idle' && (
+        <div
+          aria-live="polite"
+          className="fixed bottom-24 right-4 z-40 flex max-w-[calc(100vw-2rem)] items-center gap-3 rounded-2xl border border-cyan/40 bg-midnight-card/95 p-3 shadow-xl backdrop-blur-md"
+        >
+          <span className="font-mono-tech text-[10px] text-slate-muted">Ready when you are</span>
+          <button
+            onClick={() => startNarration()}
+            className="btn-primary shrink-0 px-3 py-2 rounded-xl text-[10px] font-mono-tech font-bold uppercase flex items-center gap-1.5"
+          >
+            <Play className="w-3.5 h-3.5 fill-current" />
+            <span>Play Introduction</span>
+          </button>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto text-left">
         {/* Section Header */}
         <div className="max-w-3xl mb-14 space-y-3">
@@ -139,6 +255,8 @@ export const About = ({ aboutData }) => {
                 isSpeaking={playbackState === 'speaking'}
                 isPaused={playbackState === 'paused'}
                 currentSentenceText={currentSentenceText}
+                autoplayBlocked={autoplayBlocked}
+                playbackState={playbackState}
               />
 
               {/* Audio Controls Bar */}
@@ -147,14 +265,19 @@ export const About = ({ aboutData }) => {
                   Audio Introduction Controls
                 </span>
 
+                <span role="status" className="font-mono-tech text-[10px] text-cyan uppercase tracking-wider">
+                  {playbackState === 'speaking' ? 'Speaking' : playbackState === 'paused' ? 'Paused' : playbackState === 'stopped' ? 'Stopped' : playbackState === 'completed' ? 'Completed' : 'Ready'}
+                </span>
+
                 <div className="flex flex-wrap items-center justify-center gap-2">
-                  {playbackState === 'idle' && (
+                  {['idle', 'stopped', 'completed'].includes(playbackState) && (
                     <button
-                      onClick={startNarration}
+                      onClick={() => startNarration()}
+                      aria-label={playbackState === 'completed' ? 'Replay Introduction' : 'Play Introduction'}
                       className="btn-primary px-6 py-2.5 rounded-xl text-xs font-mono-tech font-bold uppercase flex items-center gap-2 shadow-glow-cyan"
                     >
                       <Play className="w-4 h-4 fill-current" />
-                      <span>Play Introduction</span>
+                      <span>{playbackState === 'completed' ? 'Replay Introduction' : 'Play Introduction'}</span>
                     </button>
                   )}
 
@@ -178,7 +301,7 @@ export const About = ({ aboutData }) => {
                     </button>
                   )}
 
-                  {playbackState !== 'idle' && (
+                  {['speaking', 'paused'].includes(playbackState) && (
                     <>
                       <button
                         onClick={replayNarration}
@@ -189,8 +312,9 @@ export const About = ({ aboutData }) => {
                       </button>
                       <button
                         onClick={stopNarration}
+                        aria-label="Stop Introduction"
                         className="p-2.5 rounded-xl border border-midnight-border bg-midnight-elevated text-slate-muted hover:text-rose-400 transition-colors"
-                        title="Stop speech"
+                        title="Stop Introduction"
                       >
                         <Square className="w-4 h-4 fill-current" />
                       </button>

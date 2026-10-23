@@ -97,6 +97,7 @@ const portfolioDataSchema = new mongoose.Schema({
       date: String,
       credentialUrl: String,
       fileUrl: String,
+      fileType: String,
       description: String,
       verified: Boolean,
     }
