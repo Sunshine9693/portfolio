@@ -4,16 +4,17 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { isMongoConnected } from '../config/db.js';
+import { env } from '../config/env.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ADMIN_FILE = path.join(__dirname, '..', 'data', 'adminUser.json');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'sana_fatma_ultra_secure_portfolio_jwt_secret_2026_key';
-
 const generateToken = (id) => {
-  return jwt.sign({ id }, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ id }, env.jwtSecret, { expiresIn: '7d' });
 };
+
+const isValidEmail = (value) => /^\S+@\S+\.\S+$/.test(value);
 
 // ── File-based admin helpers ────────────────────────────────────────────
 
@@ -55,8 +56,12 @@ export const loginAdmin = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    if (!username || !password) {
+    if (typeof username !== 'string' || typeof password !== 'string' || !username.trim() || !password) {
       return res.status(400).json({ success: false, message: 'Please provide both username and password.' });
+    }
+
+    if (username.length > 254 || password.length > 200) {
+      return res.status(400).json({ success: false, message: 'Invalid credentials.' });
     }
 
     // Try MongoDB first
@@ -147,19 +152,33 @@ export const setupInitialAdmin = async (req, res) => {
   try {
     const { setupToken, username, email, password } = req.body;
 
-    const expectedToken = process.env.ADMIN_SETUP_TOKEN || 'sana_admin_setup_secure_token_2026';
+    const expectedToken = env.adminSetupToken;
 
-    if (!setupToken || setupToken !== expectedToken) {
+    if (!expectedToken || !setupToken || typeof setupToken !== 'string' || setupToken !== expectedToken) {
       return res.status(403).json({
         success: false,
         message: 'Invalid or missing admin setup token. Check your server .env configuration.'
       });
     }
 
-    if (!username || !email || !password || password.length < 8) {
+    if (
+      typeof username !== 'string' ||
+      typeof email !== 'string' ||
+      typeof password !== 'string' ||
+      !username.trim() ||
+      !email.trim() ||
+      password.length < 8
+    ) {
       return res.status(400).json({
         success: false,
         message: 'Please provide username, valid email, and a secure password of at least 8 characters.'
+      });
+    }
+
+    if (username.trim().length > 60 || email.trim().length > 254 || !isValidEmail(email.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid username (max 60 characters) and email address.'
       });
     }
 

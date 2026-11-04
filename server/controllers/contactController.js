@@ -1,33 +1,70 @@
 import mongoose from 'mongoose';
 import { ContactMessage } from '../models/ContactMessage.js';
 
+const MAX_IN_MEMORY_MESSAGES = 500;
 let inMemoryMessages = [];
+
+const cleanText = (value) =>
+  value
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+    .trim();
+
+const validateMessagePayload = (body = {}) => {
+  const { name, email, subject, message } = body;
+
+  if (typeof name !== 'string' || typeof email !== 'string' || typeof message !== 'string') {
+    return { error: 'Name, email, and message are required fields.' };
+  }
+
+  if (typeof subject !== 'undefined' && subject !== null && typeof subject !== 'string') {
+    return { error: 'Subject must be text.' };
+  }
+
+  const cleanName = cleanText(name);
+  const cleanEmail = cleanText(email).toLowerCase();
+  const cleanSubject = typeof subject === 'string' ? cleanText(subject) : '';
+  const cleanMessage = cleanText(message);
+
+  if (!cleanName || !cleanEmail || !cleanMessage) {
+    return { error: 'Name, email, and message are required fields.' };
+  }
+
+  if (cleanName.length < 2 || cleanName.length > 100) {
+    return { error: 'Name must be between 2 and 100 characters.' };
+  }
+
+  if (cleanEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(cleanEmail)) {
+    return { error: 'Please provide a valid email address.' };
+  }
+
+  if (cleanSubject.length > 150) {
+    return { error: 'Subject must be 150 characters or fewer.' };
+  }
+
+  if (cleanMessage.length < 10 || cleanMessage.length > 3000) {
+    return { error: 'Message must be between 10 and 3000 characters.' };
+  }
+
+  return {
+    value: {
+      name: cleanName,
+      email: cleanEmail,
+      subject: cleanSubject || 'Portfolio Inquiry',
+      message: cleanMessage,
+    },
+  };
+};
 
 export const submitMessage = async (req, res) => {
   try {
-    const { name, email, subject, message } = req.body;
-
-    if (!name || !email || !message) {
-      return res.status(400).json({
-        success: false,
-        message: 'Name, email, and message are required fields.'
-      });
-    }
-
-    const emailRegex = /^\S+@\S+\.\S+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide a valid email address.'
-      });
+    const validation = validateMessagePayload(req.body);
+    if (validation.error) {
+      return res.status(400).json({ success: false, message: validation.error });
     }
 
     const newMessage = {
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      subject: subject ? subject.trim() : 'Portfolio Inquiry',
-      message: message.trim(),
-      ipAddress: req.ip || req.headers['x-forwarded-for'] || '',
+      ...validation.value,
+      ipAddress: String(req.ip || req.socket?.remoteAddress || '').slice(0, 100),
       createdAt: new Date(),
     };
 
@@ -36,18 +73,21 @@ export const submitMessage = async (req, res) => {
       return res.status(201).json({
         success: true,
         message: 'Thank you for reaching out! Your message has been received.',
-        messageId: savedDoc._id
+        messageId: savedDoc._id,
       });
     }
 
-    // In-memory fallback
-    newMessage._id = 'msg_' + Date.now();
+    // In-memory fallback keeps working when MongoDB is temporarily unavailable.
+    newMessage._id = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     inMemoryMessages.unshift(newMessage);
+    if (inMemoryMessages.length > MAX_IN_MEMORY_MESSAGES) {
+      inMemoryMessages.length = MAX_IN_MEMORY_MESSAGES;
+    }
 
     return res.status(201).json({
       success: true,
       message: 'Thank you for reaching out! Your message has been received.',
-      messageId: newMessage._id
+      messageId: newMessage._id,
     });
   } catch (error) {
     console.error('submitMessage error:', error);
@@ -64,7 +104,8 @@ export const getMessages = async (req, res) => {
 
     return res.json({ success: true, count: inMemoryMessages.length, messages: inMemoryMessages });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    console.error('getMessages error:', error);
+    return res.status(500).json({ success: false, message: 'Could not load contact messages.' });
   }
 };
 
@@ -73,13 +114,25 @@ export const deleteMessage = async (req, res) => {
     const { id } = req.params;
 
     if (mongoose.connection.readyState === 1) {
-      await ContactMessage.findByIdAndDelete(id);
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, message: 'Invalid message ID.' });
+      }
+
+      const deleted = await ContactMessage.findByIdAndDelete(id);
+      if (!deleted) {
+        return res.status(404).json({ success: false, message: 'Message not found.' });
+      }
       return res.json({ success: true, message: 'Message deleted successfully.' });
     }
 
-    inMemoryMessages = inMemoryMessages.filter(m => m._id.toString() !== id);
+    const initialLength = inMemoryMessages.length;
+    inMemoryMessages = inMemoryMessages.filter((message) => message._id.toString() !== id);
+    if (inMemoryMessages.length === initialLength) {
+      return res.status(404).json({ success: false, message: 'Message not found.' });
+    }
     return res.json({ success: true, message: 'Message deleted from storage.' });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    console.error('deleteMessage error:', error);
+    return res.status(500).json({ success: false, message: 'Could not delete the contact message.' });
   }
 };

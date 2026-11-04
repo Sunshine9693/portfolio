@@ -1,4 +1,3 @@
-import React from 'react';
 import { Sparkles, Calendar, MapPin, CheckCircle2, Briefcase } from 'lucide-react';
 
 export const Experience = ({ internshipsData }) => {
@@ -50,7 +49,7 @@ export const Experience = ({ internshipsData }) => {
     }
   ];
 
-  const internships = internshipsData && internshipsData.length > 0 ? internshipsData : defaultInternships;
+  const internships = Array.isArray(internshipsData) ? internshipsData : defaultInternships;
 
   return (
     <section id="experience" className="relative py-24 px-4 sm:px-6 lg:px-8 bg-midnight-surface/50 border-t border-midnight-border">
@@ -70,6 +69,17 @@ export const Experience = ({ internshipsData }) => {
         </div>
 
         {/* Timeline Container */}
+        {internships.length === 0 ? (
+          <div className="card-dev rounded-3xl p-10 sm:p-14 text-center">
+            <Briefcase className="mx-auto h-8 w-8 text-cyan" />
+            <h3 className="mt-3 font-heading text-2xl sm:text-3xl text-slate-main uppercase tracking-wide">
+              No experience entries published yet
+            </h3>
+            <p className="mx-auto mt-2 max-w-xl font-sans text-sm text-slate-muted">
+              Internship and professional experience details will appear here once they are added.
+            </p>
+          </div>
+        ) : (
         <div className="relative pl-6 sm:pl-10 border-l-2 border-midnight-border space-y-12">
           {internships.map((internship, index) => (
             <div key={internship.id || index} className="relative group">
@@ -109,7 +119,7 @@ export const Experience = ({ internshipsData }) => {
                     Verified Responsibilities & Achievements:
                   </span>
                   <ul className="space-y-2">
-                    {internship.highlights.map((point, pIdx) => (
+                    {(Array.isArray(internship.highlights) ? internship.highlights : []).map((point, pIdx) => (
                       <li key={pIdx} className="flex items-start gap-2.5 text-xs sm:text-sm font-sans text-slate-muted">
                         <CheckCircle2 className="w-4 h-4 text-cyan shrink-0 mt-0.5" />
                         <span>{point}</span>
@@ -123,9 +133,9 @@ export const Experience = ({ internshipsData }) => {
                   <span className="font-mono-tech text-[10px] text-slate-muted uppercase tracking-wider mr-1">
                     Environment:
                   </span>
-                  {internship.technologies.map((tech, tIdx) => (
+                  {(Array.isArray(internship.technologies) ? internship.technologies : []).map((tech, tIdx) => (
                     <span
-                      key={tIdx}
+                      key={`${tech}-${tIdx}`}
                       className="px-2.5 py-1 rounded-full bg-midnight-elevated border border-midnight-border text-[11px] font-mono-tech text-slate-main"
                     >
                       {tech}
@@ -136,6 +146,7 @@ export const Experience = ({ internshipsData }) => {
             </div>
           ))}
         </div>
+        )}
       </div>
     </section>
   );

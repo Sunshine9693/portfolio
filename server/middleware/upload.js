@@ -18,35 +18,13 @@ const storage = multer.diskStorage({
     cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    const baseName = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e6);
+    const ext = path.extname(file.originalname).toLowerCase();
+    const baseName =
+      path.basename(file.originalname, path.extname(file.originalname)).replace(/[^a-zA-Z0-9_-]/g, '_') ||
+      'upload';
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
     cb(null, `${baseName}-${uniqueSuffix}${ext}`);
-  }
-});
-
-const fileFilter = (req, file, cb) => {
-  const allowedMimes = [
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'image/svg+xml',
-    'application/pdf'
-  ];
-
-  if (allowedMimes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only JPEG, PNG, WEBP, SVG, and PDF files are allowed.'), false);
-  }
-};
-
-export const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 15 * 1024 * 1024, // 15MB limit
-  }
+  },
 });
 
 const managedExtensions = {
@@ -56,20 +34,46 @@ const managedExtensions = {
   'application/pdf': ['.pdf'],
 };
 
+const hasMatchingExtension = (file) => {
+  const extension = path.extname(file.originalname).toLowerCase();
+  return Boolean(managedExtensions[file.mimetype]?.includes(extension));
+};
+
+const fileFilter = (req, file, cb) => {
+  if (managedExtensions[file.mimetype] && hasMatchingExtension(file)) {
+    cb(null, true);
+    return;
+  }
+
+  cb(new Error('Invalid file type. Only JPEG, PNG, WEBP, and PDF files are allowed.'), false);
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 15 * 1024 * 1024, // 15MB limit
+  },
+});
+
 const managedUpload = multer({
   storage,
   fileFilter: (req, file, cb) => {
-    const allowedTypes = req.params.kind === 'photo'
-      ? ['image/jpeg', 'image/png', 'image/webp']
-      : req.params.kind === 'certificate'
-        ? Object.keys(managedExtensions)
-        : [];
-    const extension = path.extname(file.originalname).toLowerCase();
+    const allowedTypes =
+      req.params.kind === 'photo'
+        ? ['image/jpeg', 'image/png', 'image/webp']
+        : req.params.kind === 'certificate'
+          ? Object.keys(managedExtensions)
+          : [];
 
-    if (!managedExtensions[file.mimetype]?.includes(extension) || !allowedTypes.includes(file.mimetype)) {
-      cb(new Error(req.params.kind === 'photo'
-        ? 'Choose a JPG, PNG, or WebP image.'
-        : 'Choose a JPG, PNG, WebP image, or PDF certificate.'));
+    if (!allowedTypes.includes(file.mimetype) || !hasMatchingExtension(file)) {
+      cb(
+        new Error(
+          req.params.kind === 'photo'
+            ? 'Choose a JPG, PNG, or WebP image.'
+            : 'Choose a JPG, PNG, WebP image, or PDF certificate.'
+        )
+      );
       return;
     }
 
@@ -80,17 +84,25 @@ const managedUpload = multer({
   },
 });
 
+const handleUploadError = (res, error) => {
+  const status = error.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+  return res.status(status).json({ success: false, message: error.message });
+};
+
+export const uploadSingleFile = (req, res, next) => {
+  upload.single('file')(req, res, (error) => {
+    if (error) return handleUploadError(res, error);
+    next();
+  });
+};
+
 export const uploadManagedFile = (req, res, next) => {
   if (!['photo', 'certificate'].includes(req.params.kind)) {
     return res.status(400).json({ success: false, message: 'Unsupported media type.' });
   }
 
   managedUpload.single('file')(req, res, (error) => {
-    if (error) {
-      const status = error.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
-      return res.status(status).json({ success: false, message: error.message });
-    }
-
+    if (error) return handleUploadError(res, error);
     next();
   });
 };

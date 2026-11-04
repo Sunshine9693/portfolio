@@ -1,5 +1,4 @@
-import React from 'react';
-import { Sparkles, GraduationCap, Award, BookOpen, CheckCircle2, Trophy } from 'lucide-react';
+import { Sparkles, GraduationCap, BookOpen, CheckCircle2, Trophy } from 'lucide-react';
 
 export const Education = ({ educationData, achievementsData }) => {
   const education = educationData || {
@@ -55,7 +54,7 @@ export const Education = ({ educationData, achievementsData }) => {
     }
   ];
 
-  const achievements = achievementsData && achievementsData.length > 0 ? achievementsData : defaultAchievements;
+  const achievements = Array.isArray(achievementsData) ? achievementsData : defaultAchievements;
 
   return (
     <section id="education" className="relative py-24 px-4 sm:px-6 lg:px-8 ambient-glow-section">
@@ -104,7 +103,7 @@ export const Education = ({ educationData, achievementsData }) => {
                   <BookOpen className="w-4 h-4 text-cyan" /> Key Academic Study Areas:
                 </span>
                 <div className="flex flex-wrap gap-2">
-                  {(education.keyAreas || []).map((area, idx) => (
+                  {(Array.isArray(education.keyAreas) ? education.keyAreas : []).map((area, idx) => (
                     <span
                       key={idx}
                       className="px-3 py-1.5 rounded-xl bg-midnight-elevated border border-midnight-border text-xs font-sans text-slate-main"
@@ -146,7 +145,13 @@ export const Education = ({ educationData, achievementsData }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {achievements.map((item, idx) => (
+            {achievements.length === 0 ? (
+              <div className="card-dev rounded-2xl p-8 text-center md:col-span-2 lg:col-span-3">
+                <p className="font-sans text-sm text-slate-muted">
+                  Achievements will appear here once they are added through the admin portal.
+                </p>
+              </div>
+            ) : achievements.map((item, idx) => (
               <div
                 key={item.id || idx}
                 className="card-dev rounded-2xl p-6 flex flex-col justify-between space-y-4"

@@ -3,12 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { isMongoConnected } from '../config/db.js';
+import { env } from '../config/env.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ADMIN_FILE = path.join(__dirname, '..', 'data', 'adminUser.json');
-
-const JWT_SECRET = process.env.JWT_SECRET || 'sana_fatma_ultra_secure_portfolio_jwt_secret_2026_key';
 
 const readFileAdmin = () => {
   try {
@@ -25,7 +24,7 @@ export const protectAdmin = async (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, JWT_SECRET);
+      const decoded = jwt.verify(token, env.jwtSecret);
 
       // Try MongoDB first
       if (isMongoConnected) {

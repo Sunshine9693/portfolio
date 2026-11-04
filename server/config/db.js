@@ -1,10 +1,19 @@
 import mongoose from 'mongoose';
+import { env } from './env.js';
 
 export let isMongoConnected = false;
 
+mongoose.connection.on('connected', () => {
+  isMongoConnected = true;
+});
+
+mongoose.connection.on('disconnected', () => {
+  isMongoConnected = false;
+});
+
 export const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/sana_portfolio', {
+    const conn = await mongoose.connect(env.mongoUri, {
       serverSelectionTimeoutMS: 5000,
     });
     console.log(`[MongoDB Connected]: ${conn.connection.host}`);
@@ -12,7 +21,7 @@ export const connectDB = async () => {
     return true;
   } catch (error) {
     console.warn(`[MongoDB Warning]: Could not connect to MongoDB: ${error.message}`);
-    console.warn(`[MongoDB Warning]: Falling back to file-based auth and storage.`);
+    console.warn('[MongoDB Warning]: Falling back to file-based auth and storage.');
     isMongoConnected = false;
     return false;
   }

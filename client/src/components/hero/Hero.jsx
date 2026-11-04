@@ -1,31 +1,117 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowUpRight, FileDown, Sparkles, GraduationCap, Briefcase, Code, Terminal } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ArrowUpRight,
+  FileDown,
+  Sparkles,
+  GraduationCap,
+  Briefcase,
+  Code,
+  Terminal,
+} from 'lucide-react';
+import { resolveAssetUrl } from '../../services/api';
 
-export const Hero = ({ heroData }) => {
+const DEFAULT_ROLES = [
+  'Computer Science Student',
+  'Web Developer',
+  'AI Enthusiast',
+  'Full-Stack Developer',
+];
+
+const DEFAULT_BADGES = ['B.Tech CSE • MANUU', 'CGPA: 8.72', 'Expected 2027'];
+
+const DEFAULT_STATS = [
+  { label: 'Academic CGPA', value: '8.72', sublabel: 'Consistent >8.5' },
+  { label: 'Internships', value: '03', sublabel: 'Industry Experience' },
+  { label: 'Documented Projects', value: '05', sublabel: 'AI & Web Solutions' },
+  { label: 'Expected Year', value: '2027', sublabel: 'B.Tech CSE MANUU' },
+];
+
+const BADGE_STYLES = [
+  { icon: GraduationCap, wrapper: 'border-cyan/30', text: 'text-cyan' },
+  { icon: Briefcase, wrapper: 'border-violet/30', text: 'text-violet' },
+  { icon: Sparkles, wrapper: 'border-indigo/30', text: 'text-indigo-light' },
+  { icon: Code, wrapper: 'border-emerald-500/30', text: 'text-emerald-accent' },
+];
+
+const safeText = (value, fallback) =>
+  typeof value === 'string' && value.trim() ? value.trim() : fallback;
+
+export const Hero = ({ heroData, educationData }) => {
   const [currentRoleIndex, setCurrentRoleIndex] = useState(0);
   const [imgError, setImgError] = useState(false);
 
-  const roles = [
-    'Computer Science Student',
-    'Web Developer',
-    'AI Enthusiast'
-  ];
+  const roles = useMemo(() => {
+    const configuredRoles = Array.isArray(heroData?.roles)
+      ? heroData.roles.filter((role) => typeof role === 'string' && role.trim())
+      : [];
+    return configuredRoles.length > 0 ? configuredRoles : DEFAULT_ROLES;
+  }, [heroData?.roles]);
+
+  const badges = useMemo(() => {
+    const configuredBadges = Array.isArray(heroData?.badges)
+      ? heroData.badges.filter((badge) => typeof badge === 'string' && badge.trim())
+      : [];
+    return configuredBadges.length > 0 ? configuredBadges : DEFAULT_BADGES;
+  }, [heroData?.badges]);
+
+  const stats = useMemo(() => {
+    const configuredStats = Array.isArray(heroData?.stats)
+      ? heroData.stats.filter((stat) => stat && typeof stat === 'object')
+      : [];
+    return configuredStats.length > 0 ? configuredStats : DEFAULT_STATS;
+  }, [heroData?.stats]);
+
+  const rolesKey = roles.join('\u0000');
+  const name = safeText(heroData?.name, 'Sana Fatma');
+  const headline = safeText(
+    heroData?.headline,
+    'Building thoughtful software and exploring intelligent experiences.'
+  );
+  const supportingCopy = safeText(
+    heroData?.supportingCopy,
+    "I'm Sana Fatma, a final-year Computer Science and Engineering student passionate about web development, software engineering, and AI-powered applications."
+  );
+  const portraitSrc = resolveAssetUrl(heroData?.portraitUrl) || '/images/sana_portrait.jpg';
+  const resumeUrl = resolveAssetUrl(heroData?.resumeUrl) || '/Sana_Fatma_Resume.pdf';
+
+  const headlineWords = headline.split(/\s+/).filter(Boolean);
+  const splitIndex = Math.max(1, Math.ceil(headlineWords.length / 2));
+  const headlineStart = headlineWords.slice(0, splitIndex).join(' ');
+  const headlineEnd = headlineWords.slice(splitIndex).join(' ');
+
+  const cgpa =
+    stats.find((stat) => String(stat.label || '').toLowerCase().includes('cgpa'))?.value ||
+    educationData?.cgpa ||
+    '8.72';
+  const expectedYear =
+    stats.find((stat) => String(stat.label || '').toLowerCase().includes('year'))?.value ||
+    educationData?.expectedGraduation ||
+    '2027';
+  const university = safeText(
+    educationData?.university,
+    'Maulana Azad National Urdu University (MANUU)'
+  );
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentRoleIndex((prev) => (prev + 1) % roles.length);
+    setCurrentRoleIndex(0);
+    if (roles.length < 2) return undefined;
+
+    const interval = window.setInterval(() => {
+      setCurrentRoleIndex((previous) => (previous + 1) % roles.length);
     }, 2800);
-    return () => clearInterval(interval);
-  }, [roles.length]);
+
+    return () => window.clearInterval(interval);
+  }, [roles.length, rolesKey]);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [portraitSrc]);
 
   const scrollToSection = (id) => {
-    const target = document.getElementById(id);
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
-    }
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const portraitSrc = heroData?.portraitUrl || '/images/sana_portrait.jpg';
+  const currentRole = roles[currentRoleIndex % roles.length];
 
   return (
     <section
@@ -44,15 +130,19 @@ export const Hero = ({ heroData }) => {
             <span>Available for opportunities</span>
           </div>
 
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-midnight-card border border-cyan/30 text-xs font-mono-tech text-cyan">
-            <GraduationCap className="w-3.5 h-3.5" />
-            <span>B.Tech CSE • MANUU</span>
-          </div>
-
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-midnight-card border border-violet/30 text-xs font-mono-tech text-violet">
-            <Briefcase className="w-3.5 h-3.5" />
-            <span>Class of 2027</span>
-          </div>
+          {badges.map((badge, index) => {
+            const style = BADGE_STYLES[index % BADGE_STYLES.length];
+            const BadgeIcon = style.icon;
+            return (
+              <div
+                key={`${badge}-${index}`}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-midnight-card border ${style.wrapper} text-xs font-mono-tech ${style.text}`}
+              >
+                <BadgeIcon className="w-3.5 h-3.5" />
+                <span>{badge}</span>
+              </div>
+            );
+          })}
         </div>
 
         {/* Main 2-Column Grid */}
@@ -64,16 +154,20 @@ export const Hero = ({ heroData }) => {
                 <span>Software & AI Developer</span>
               </div>
               <h2 className="text-[clamp(2.5rem,4.5vw,4rem)] leading-[1.1] font-mono-tech text-slate-muted font-normal">
-                Sana Fatma
+                {name}
               </h2>
             </div>
 
             <h1 className="font-heading text-[clamp(2rem,3.8vw+0.5rem,3.25rem)] text-slate-main tracking-[-0.04em] uppercase leading-[1.02] drop-shadow-sm">
-              Building thoughtful software <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan via-indigo to-violet">
-                and exploring intelligent
-              </span> <br />
-              experiences.
+              {headlineStart}
+              {headlineEnd && (
+                <>
+                  {' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan via-indigo to-violet">
+                    {headlineEnd}
+                  </span>
+                </>
+              )}
             </h1>
 
             <div className="flex items-center gap-3 py-1 font-mono-tech">
@@ -82,16 +176,16 @@ export const Hero = ({ heroData }) => {
               </span>
               <div className="relative h-7 overflow-hidden inline-block min-w-[240px]">
                 <div
-                  key={currentRoleIndex}
+                  key={`${currentRoleIndex}-${currentRole}`}
                   className="text-base sm:text-lg text-cyan font-bold tracking-wide animate-fade-in"
                 >
-                  › {roles[currentRoleIndex]}
+                  › {currentRole}
                 </div>
               </div>
             </div>
 
             <p className="text-base sm:text-lg text-slate-muted leading-relaxed max-w-2xl font-sans font-light">
-              I'm Sana Fatma, a final-year Computer Science and Engineering student passionate about web development, software engineering, and AI-powered applications.
+              {supportingCopy}
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-4">
@@ -104,7 +198,7 @@ export const Hero = ({ heroData }) => {
               </button>
 
               <a
-                href={heroData?.resumeUrl || '/Sana_Fatma_Resume.pdf'}
+                href={resumeUrl}
                 download="Sana_Fatma_Resume.pdf"
                 className="btn-secondary px-6 py-3.5 rounded-full text-xs sm:text-sm font-mono-tech font-medium uppercase tracking-wider flex items-center gap-2 group hover:text-cyan"
               >
@@ -146,16 +240,16 @@ export const Hero = ({ heroData }) => {
                   {!imgError ? (
                     <img
                       src={portraitSrc}
-                      alt="Sana Fatma — Software Engineer & AI Developer"
+                      alt={`${name} — Software Engineer & AI Developer`}
                       onError={() => setImgError(true)}
-                      className="w-full h-full object-cover object-center group-hover:scale-102 transition-transform duration-500"
+                      className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-500"
                     />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
                       <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-cyan to-indigo flex items-center justify-center font-heading text-3xl text-midnight font-bold mb-3 shadow-glow-cyan">
                         SF
                       </div>
-                      <h4 className="font-heading text-xl text-slate-main">SANA FATMA</h4>
+                      <h4 className="font-heading text-xl text-slate-main">{name.toUpperCase()}</h4>
                       <p className="font-mono-tech text-xs text-slate-muted">B.Tech CSE • MANUU</p>
                     </div>
                   )}
@@ -164,21 +258,21 @@ export const Hero = ({ heroData }) => {
                   <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-midnight-card via-midnight-card/80 to-transparent pointer-events-none" />
 
                   {/* Bottom Info Floating Ribbon */}
-                  <div className="absolute bottom-3 left-3 right-3 p-3 rounded-xl bg-midnight-elevated/90 backdrop-blur-md border border-midnight-border flex items-center justify-between">
-                    <div>
-                      <div className="font-heading text-lg text-slate-main uppercase tracking-wide leading-none">
-                        SANA FATMA
+                  <div className="absolute bottom-3 left-3 right-3 p-3 rounded-xl bg-midnight-elevated/90 backdrop-blur-md border border-midnight-border flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="font-heading text-lg text-slate-main uppercase tracking-wide leading-none truncate">
+                        {name}
                       </div>
-                      <div className="font-mono-tech text-[10px] text-cyan tracking-wider uppercase mt-1">
-                        Maulana Azad National Urdu Univ.
+                      <div className="font-mono-tech text-[10px] text-cyan tracking-wider uppercase mt-1 truncate">
+                        {university}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0">
                       <div className="font-mono-tech text-xs text-emerald-accent font-bold">
-                        CGPA 8.72
+                        CGPA {cgpa}
                       </div>
                       <div className="font-mono-tech text-[9px] text-slate-muted uppercase">
-                        Class of 2027
+                        Class of {expectedYear}
                       </div>
                     </div>
                   </div>
@@ -186,7 +280,7 @@ export const Hero = ({ heroData }) => {
 
                 {/* Code Snippet Under Portrait */}
                 <div className="mt-3 p-2.5 rounded-xl bg-midnight-surface/80 border border-midnight-border/60 font-mono-tech text-[11px] text-slate-muted">
-                  <span className="text-violet">const</span> <span className="text-cyan">developer</span> = &#123; role: <span className="text-emerald-accent">"Full-Stack & AI"</span>, grad: <span className="text-amber-300">2027</span> &#125;;
+                  <span className="text-violet">const</span> <span className="text-cyan">developer</span> = &#123; role: <span className="text-emerald-accent">"{roles[0]}"</span>, grad: <span className="text-amber-300">{expectedYear}</span> &#125;;
                 </div>
               </div>
             </div>
@@ -195,21 +289,16 @@ export const Hero = ({ heroData }) => {
 
         {/* Verified Stats Strip */}
         <div className="mt-14 pt-8 border-t border-midnight-border/60 grid grid-cols-2 md:grid-cols-4 gap-6 text-left">
-          {[
-            { label: 'Academic CGPA', value: '8.72', sublabel: 'Consistent >8.5 at MANUU' },
-            { label: 'Internships', value: '03', sublabel: 'Industry Experience' },
-            { label: 'Documented Projects', value: '05', sublabel: 'AI & Web Solutions' },
-            { label: 'Expected Year', value: '2027', sublabel: 'B.Tech CSE Graduate' },
-          ].map((stat, idx) => (
-            <div key={idx} className="space-y-1">
+          {stats.map((stat, index) => (
+            <div key={`${stat.label || 'stat'}-${index}`} className="space-y-1">
               <div className="font-heading text-3xl sm:text-4xl text-slate-main tracking-tight">
-                {stat.value}
+                {stat.value || '—'}
               </div>
               <div className="font-mono-tech text-xs text-cyan uppercase tracking-wider font-semibold">
-                {stat.label}
+                {stat.label || 'Portfolio Metric'}
               </div>
               <div className="font-sans text-[11px] text-slate-muted">
-                {stat.sublabel}
+                {stat.sublabel || ''}
               </div>
             </div>
           ))}

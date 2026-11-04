@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Sparkles, Code2, Server, Cpu, Brain, ArrowUpRight, X, CheckCircle2 } from 'lucide-react';
+import { useDialogBehavior } from '../../hooks/useDialogBehavior';
 
 export const Skills = ({ skillsData }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  useDialogBehavior(Boolean(selectedCategory), () => setSelectedCategory(null));
 
   const defaultCategories = [
     {
@@ -61,7 +64,7 @@ export const Skills = ({ skillsData }) => {
     }
   ];
 
-  const categories = skillsData && skillsData.length > 0 ? skillsData : defaultCategories;
+  const categories = Array.isArray(skillsData) ? skillsData : defaultCategories;
 
   return (
     <section id="skills" className="relative py-24 px-4 sm:px-6 lg:px-8 ambient-glow-section">
@@ -81,6 +84,16 @@ export const Skills = ({ skillsData }) => {
         </div>
 
         {/* 4 Developer-Style Cards Grid */}
+        {categories.length === 0 ? (
+          <div className="card-dev rounded-3xl p-10 sm:p-14 text-center">
+            <h3 className="font-heading text-2xl sm:text-3xl text-slate-main uppercase tracking-wide">
+              No skill categories published yet
+            </h3>
+            <p className="mx-auto mt-2 max-w-xl font-sans text-sm text-slate-muted">
+              Skill categories added through the admin portal will appear here.
+            </p>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           {categories.map((card, index) => {
             const isAI = card.id === 'data-ai';
@@ -147,17 +160,17 @@ export const Skills = ({ skillsData }) => {
                 {/* Tech Chips */}
                 <div>
                   <div className="flex flex-wrap gap-1.5 mb-5">
-                    {(card.items || []).slice(0, 5).map((item, itemIdx) => (
+                    {(Array.isArray(card.items) ? card.items : []).slice(0, 5).map((item, itemIdx) => (
                       <span
-                        key={itemIdx}
+                        key={`${item?.name || 'skill'}-${itemIdx}`}
                         className="text-[10px] font-mono-tech px-2.5 py-1 rounded-full bg-midnight-elevated border border-midnight-border text-slate-main"
                       >
-                        {item.name}
+                        {item?.name}
                       </span>
                     ))}
-                    {(card.items || []).length > 5 && (
+                    {Array.isArray(card.items) && card.items.length > 5 && (
                       <span className="text-[10px] font-mono-tech px-2 py-1 rounded-full text-cyan">
-                        +{(card.items || []).length - 5} more
+                        +{card.items.length - 5} more
                       </span>
                     )}
                   </div>
@@ -172,6 +185,7 @@ export const Skills = ({ skillsData }) => {
             );
           })}
         </div>
+        )}
       </div>
 
       {/* Deep-Dive Modal */}
@@ -179,6 +193,9 @@ export const Skills = ({ skillsData }) => {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-midnight/80 backdrop-blur-md animate-fade-in"
           onClick={() => setSelectedCategory(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${selectedCategory.category || 'Skill category'} details`}
         >
           <div
             className="relative card-dev rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto text-left border-cyan/40"
@@ -194,8 +211,10 @@ export const Skills = ({ skillsData }) => {
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedCategory(null)}
                 className="p-2 rounded-full border border-midnight-border text-slate-muted hover:text-slate-main hover:border-cyan/50"
+                aria-label="Close skill category details"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -210,7 +229,7 @@ export const Skills = ({ skillsData }) => {
                 VERIFIED SKILLS & COMPETENCIES
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {(selectedCategory.items || []).map((skill, idx) => (
+                {(Array.isArray(selectedCategory.items) ? selectedCategory.items : []).map((skill, idx) => (
                   <div
                     key={idx}
                     className="p-3.5 rounded-xl bg-midnight-elevated border border-midnight-border flex items-start gap-3 hover:border-cyan/40 transition-colors"
@@ -231,6 +250,7 @@ export const Skills = ({ skillsData }) => {
 
             <div className="mt-8 pt-4 border-t border-midnight-border flex justify-end">
               <button
+                type="button"
                 onClick={() => setSelectedCategory(null)}
                 className="btn-secondary px-5 py-2 rounded-xl text-xs font-mono-tech uppercase"
               >

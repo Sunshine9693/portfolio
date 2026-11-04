@@ -43,7 +43,7 @@ const portfolioDataSchema = new mongoose.Schema({
       id: String,
       title: String,
       subtitle: String,
-      type: String, // 'Personal Project', 'College Group Project'
+      type: { type: String }, // 'Personal Project', 'College Group Project'
       status: String, // 'Ongoing', 'Completed'
       category: String,
       featured: Boolean,

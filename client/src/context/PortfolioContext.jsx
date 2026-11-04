@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import api, { isApiCancel } from '../services/api';
 
 const PortfolioContext = createContext();
 
@@ -7,49 +7,65 @@ export const PortfolioProvider = ({ children }) => {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const activeRequestRef = useRef(null);
 
-  const fetchPortfolioData = async () => {
+  const fetchPortfolioData = useCallback(async () => {
+    activeRequestRef.current?.abort();
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
+
     try {
       setIsLoading(true);
-      const res = await axios.get('/api/content');
+      const res = await api.get('/api/content', { signal: controller.signal });
       if (res.data?.success && res.data?.data) {
         setData(res.data.data);
       }
       setError(null);
     } catch (err) {
+      if (isApiCancel(err)) return;
       console.error('Failed to fetch portfolio data:', err);
-      setError(err.message || 'Failed to load portfolio content.');
+      setError(err.response?.data?.message || err.message || 'Failed to load portfolio content.');
     } finally {
-      setIsLoading(false);
+      if (activeRequestRef.current === controller) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchPortfolioData();
-  }, []);
+    return () => {
+      activeRequestRef.current?.abort();
+    };
+  }, [fetchPortfolioData]);
 
-  const updateSectionData = async (section, updatedData, token) => {
+  const updateSectionData = useCallback(async (section, updatedData, token) => {
     try {
-      const res = await axios.put(
+      const res = await api.put(
         '/api/content/section',
         { section, data: updatedData },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data?.success) {
-        setData(prev => ({
-          ...prev,
-          [section]: res.data.data
+        setData((prev) => ({
+          ...(prev || {}),
+          [section]: res.data.data,
         }));
         return { success: true };
       }
       return { success: false, message: res.data?.message || 'Update failed' };
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || err.message };
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message || 'Update failed',
+      };
     }
-  };
+  }, []);
 
   return (
-    <PortfolioContext.Provider value={{ data, isLoading, error, refreshData: fetchPortfolioData, updateSectionData }}>
+    <PortfolioContext.Provider
+      value={{ data, isLoading, error, refreshData: fetchPortfolioData, updateSectionData }}
+    >
       {children}
     </PortfolioContext.Provider>
   );

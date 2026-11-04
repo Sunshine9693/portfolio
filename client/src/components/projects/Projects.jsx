@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { Sparkles, ArrowUpRight, ExternalLink, Mic, Cpu, Layers, CheckCircle2, Clock, X, Info } from 'lucide-react';
+import { useState } from 'react';
+import { Sparkles, ArrowUpRight, ExternalLink, Mic, CheckCircle2, Clock, X, Info } from 'lucide-react';
 import { Github } from '../common/Icons';
+import { useDialogBehavior } from '../../hooks/useDialogBehavior';
 
 export const Projects = ({ projectsData }) => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [activeFilter, setActiveFilter] = useState('All');
+
+  useDialogBehavior(Boolean(selectedProject), () => setSelectedProject(null));
 
   const defaultProjects = [
     {
@@ -158,22 +161,33 @@ export const Projects = ({ projectsData }) => {
     }
   ];
 
-  const projects = projectsData && projectsData.length > 0 ? projectsData : defaultProjects;
-  const auraProject = projects.find(p => p.featured || p.id === 'aura-voice-assistant') || projects[0];
-  const gridProjects = projects.filter(p => p.id !== auraProject.id);
-
+  const projects = Array.isArray(projectsData) ? projectsData : defaultProjects;
   const filterOptions = ['All', 'Personal Project', 'College Group Project', 'Ongoing', 'Completed'];
 
-  const filteredGridProjects = gridProjects.filter(p => {
+  const matchesActiveFilter = (project) => {
     if (activeFilter === 'All') return true;
     if (activeFilter === 'Personal Project' || activeFilter === 'College Group Project') {
-      return p.type === activeFilter;
+      return project.type === activeFilter;
     }
     if (activeFilter === 'Ongoing' || activeFilter === 'Completed') {
-      return p.status === activeFilter;
+      return project.status === activeFilter;
     }
     return true;
-  });
+  };
+
+  const filteredProjects = projects.filter(matchesActiveFilter);
+  const auraProject =
+    filteredProjects.find((project) => project.featured || project.id === 'aura-voice-assistant') ||
+    filteredProjects[0] ||
+    null;
+  const gridProjects = auraProject
+    ? filteredProjects.filter((project) => project !== auraProject)
+    : [];
+  const auraTechnologies = Array.isArray(auraProject?.technologies) ? auraProject.technologies : [];
+  const auraFeatures = Array.isArray(auraProject?.features) ? auraProject.features : [];
+  const auraPlannedFeatures = Array.isArray(auraProject?.plannedFeatures)
+    ? auraProject.plannedFeatures
+    : [];
 
   return (
     <section id="projects" className="relative py-24 px-4 sm:px-6 lg:px-8 border-t border-midnight-border bg-midnight-surface/30">
@@ -198,7 +212,9 @@ export const Projects = ({ projectsData }) => {
             {filterOptions.map((filter) => (
               <button
                 key={filter}
+                type="button"
                 onClick={() => setActiveFilter(filter)}
+                aria-pressed={activeFilter === filter}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-mono-tech uppercase tracking-wider transition-all ${
                   activeFilter === filter
                     ? 'bg-cyan text-midnight font-bold shadow-glow-cyan'
@@ -211,8 +227,30 @@ export const Projects = ({ projectsData }) => {
           </div>
         </div>
 
-        {/* 1. HERO SPOTLIGHT CARD: AURA PERSONALIZED AI VOICE ASSISTANT */}
-        <div className="mb-12">
+        {filteredProjects.length === 0 ? (
+          <div className="card-dev rounded-3xl p-10 sm:p-14 text-center">
+            <h3 className="font-heading text-2xl sm:text-3xl text-slate-main uppercase tracking-wide">
+              {projects.length === 0 ? 'No projects published yet' : 'No projects match this filter'}
+            </h3>
+            <p className="mx-auto mt-2 max-w-xl font-sans text-sm text-slate-muted">
+              {projects.length === 0
+                ? 'Project case studies will appear here once they are added through the admin portal.'
+                : 'Try a different project type or status to see the available case studies.'}
+            </p>
+            {projects.length > 0 && activeFilter !== 'All' && (
+              <button
+                type="button"
+                onClick={() => setActiveFilter('All')}
+                className="btn-secondary mt-6 px-5 py-2.5 rounded-xl text-xs font-mono-tech uppercase"
+              >
+                Clear Filter
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* 1. HERO SPOTLIGHT CARD: FEATURED PROJECT */}
+            <div className="mb-12">
           <div className="card-ai-glow rounded-3xl p-6 sm:p-10 shadow-card-dev-hover overflow-hidden relative">
             <div className="absolute top-0 right-0 w-96 h-96 bg-cyan/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-80 h-80 bg-violet/10 rounded-full blur-3xl pointer-events-none" />
@@ -242,44 +280,50 @@ export const Projects = ({ projectsData }) => {
                 </div>
 
                 <p className="font-sans text-sm sm:text-base text-slate-muted leading-relaxed">
-                  {auraProject.longDescription}
+                  {auraProject.longDescription || auraProject.description || ''}
                 </p>
 
                 {/* Verified Resume Features */}
-                <div className="space-y-2 pt-1">
-                  <span className="font-mono-tech text-xs text-slate-main uppercase tracking-widest font-semibold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-cyan" /> Verified Core Capabilities:
-                  </span>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-sans text-slate-muted">
-                    {(auraProject.features || []).slice(0, 4).map((feat, idx) => (
-                      <li key={idx} className="flex items-start gap-2 bg-midnight-elevated/70 p-2.5 rounded-xl border border-midnight-border/70">
-                        <span className="text-cyan font-bold">•</span>
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                {auraFeatures.length > 0 && (
+                  <div className="space-y-2 pt-1">
+                    <span className="font-mono-tech text-xs text-slate-main uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-cyan" /> Verified Core Capabilities:
+                    </span>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-sans text-slate-muted">
+                      {auraFeatures.slice(0, 4).map((feat, idx) => (
+                        <li key={idx} className="flex items-start gap-2 bg-midnight-elevated/70 p-2.5 rounded-xl border border-midnight-border/70">
+                          <span className="text-cyan font-bold">•</span>
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Future Possibilities Note */}
-                <div className="p-3 rounded-xl bg-midnight/60 border border-midnight-border flex items-start gap-2.5 text-xs font-sans text-slate-muted">
-                  <Info className="w-4 h-4 text-violet shrink-0 mt-0.5" />
-                  <span>
-                    <strong className="text-slate-main font-mono-tech">Future Scope (Planned):</strong>{' '}
-                    {(auraProject.plannedFeatures || []).join(', ')}.
-                  </span>
-                </div>
+                {auraPlannedFeatures.length > 0 && (
+                  <div className="p-3 rounded-xl bg-midnight/60 border border-midnight-border flex items-start gap-2.5 text-xs font-sans text-slate-muted">
+                    <Info className="w-4 h-4 text-violet shrink-0 mt-0.5" />
+                    <span>
+                      <strong className="text-slate-main font-mono-tech">Future Scope (Planned):</strong>{' '}
+                      {auraPlannedFeatures.join(', ')}.
+                    </span>
+                  </div>
+                )}
 
                 {/* Tech Chips */}
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {auraProject.technologies.map((tech, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 rounded-full bg-midnight-elevated border border-midnight-border text-xs font-mono-tech text-slate-main hover:border-cyan/40 transition-colors"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
+                {auraTechnologies.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {auraTechnologies.map((tech, idx) => (
+                      <span
+                        key={`${tech}-${idx}`}
+                        className="px-3 py-1 rounded-full bg-midnight-elevated border border-midnight-border text-xs font-mono-tech text-slate-main hover:border-cyan/40 transition-colors"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -361,7 +405,7 @@ export const Projects = ({ projectsData }) => {
 
         {/* 2. GRID PROJECTS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredGridProjects.map((project, idx) => (
+          {gridProjects.map((project, idx) => (
             <div
               key={project.id || idx}
               className="card-dev rounded-3xl p-6 sm:p-7 flex flex-col justify-between group text-left"
@@ -415,9 +459,9 @@ export const Projects = ({ projectsData }) => {
               {/* Bottom Tech Chips & Action Button */}
               <div>
                 <div className="flex flex-wrap gap-1.5 mb-5 pt-4 border-t border-midnight-border">
-                  {project.technologies.map((tech, tIdx) => (
+                  {(Array.isArray(project.technologies) ? project.technologies : []).map((tech, tIdx) => (
                     <span
-                      key={tIdx}
+                      key={`${tech}-${tIdx}`}
                       className="text-[10px] font-mono-tech px-2.5 py-1 rounded-full bg-midnight-elevated border border-midnight-border text-slate-main"
                     >
                       {tech}
@@ -427,6 +471,7 @@ export const Projects = ({ projectsData }) => {
 
                 <div className="flex items-center justify-between pt-2">
                   <button
+                    type="button"
                     onClick={() => setSelectedProject(project)}
                     className="text-xs font-mono-tech text-slate-main group-hover:text-cyan uppercase font-bold tracking-wider flex items-center gap-1.5 transition-colors"
                   >
@@ -450,6 +495,8 @@ export const Projects = ({ projectsData }) => {
             </div>
           ))}
         </div>
+          </>
+        )}
       </div>
 
       {/* Case Study Modal */}
@@ -457,6 +504,9 @@ export const Projects = ({ projectsData }) => {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-midnight/85 backdrop-blur-md animate-fade-in"
           onClick={() => setSelectedProject(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${selectedProject.title} case study`}
         >
           <div
             className="relative card-dev rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto text-left space-y-6 border-cyan/40"
@@ -479,8 +529,10 @@ export const Projects = ({ projectsData }) => {
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedProject(null)}
                 className="p-2 rounded-full border border-midnight-border text-slate-muted hover:text-slate-main hover:border-cyan/50"
+                aria-label="Close project case study"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -492,7 +544,7 @@ export const Projects = ({ projectsData }) => {
             </p>
 
             {/* Architecture Details if present */}
-            {selectedProject.architecture && selectedProject.architecture.length > 0 && (
+            {Array.isArray(selectedProject.architecture) && selectedProject.architecture.length > 0 && (
               <div className="space-y-2">
                 <span className="font-mono-tech text-xs text-slate-main uppercase tracking-widest font-bold">
                   System Architecture
@@ -514,7 +566,7 @@ export const Projects = ({ projectsData }) => {
                 Documented Features & Capabilities
               </span>
               <ul className="space-y-2">
-                {(selectedProject.features || []).map((feat, idx) => (
+                {(Array.isArray(selectedProject.features) ? selectedProject.features : []).map((feat, idx) => (
                   <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm font-sans text-slate-muted">
                     <CheckCircle2 className="w-4 h-4 text-cyan shrink-0 mt-0.5" />
                     <span>{feat}</span>
@@ -524,7 +576,7 @@ export const Projects = ({ projectsData }) => {
             </div>
 
             {/* Planned Features if any */}
-            {selectedProject.plannedFeatures && selectedProject.plannedFeatures.length > 0 && (
+            {Array.isArray(selectedProject.plannedFeatures) && selectedProject.plannedFeatures.length > 0 && (
               <div className="p-4 rounded-xl bg-midnight border border-midnight-border text-xs font-sans text-slate-muted">
                 <span className="font-mono-tech text-slate-main font-bold block mb-1">
                   Future Planned Possibilities:
@@ -539,9 +591,9 @@ export const Projects = ({ projectsData }) => {
                 Technology Stack
               </span>
               <div className="flex flex-wrap gap-2">
-                {selectedProject.technologies.map((tech, idx) => (
+                {(Array.isArray(selectedProject.technologies) ? selectedProject.technologies : []).map((tech, idx) => (
                   <span
-                    key={idx}
+                    key={`${tech}-${idx}`}
                     className="px-3 py-1 rounded-full bg-midnight-elevated border border-midnight-border text-xs font-mono-tech text-slate-main"
                   >
                     {tech}
@@ -577,6 +629,7 @@ export const Projects = ({ projectsData }) => {
                 )}
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedProject(null)}
                 className="btn-secondary px-5 py-2 rounded-xl text-xs font-mono-tech uppercase"
               >

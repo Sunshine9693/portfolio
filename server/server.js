@@ -1,11 +1,9 @@
-
+import { env } from './config/env.js';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import dns from 'node:dns';
 import helmet from 'helmet';
-import path from 'path';
-import { fileURLToPath } from 'node:url';
+import mongoose from 'mongoose';
 
 import { connectDB } from './config/db.js';
 import contentRoutes from './routes/contentRoutes.js';
@@ -14,21 +12,20 @@ import contactRoutes from './routes/contactRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import { configureUploadStorage, uploadsDir } from './middleware/upload.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-dotenv.config();
-
 // Local DNS workaround for MongoDB Atlas SRV lookup.
 // Do not override DNS servers in production.
-if (process.env.NODE_ENV !== 'production') {
+if (!env.isProduction) {
   dns.setServers(['8.8.8.8', '1.1.1.1']);
 }
 
-configureUploadStorage(process.env.UPLOADS_DIR);
+configureUploadStorage(env.uploadsDir);
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+
+if (env.isProduction) {
+  // Required for correct client IPs when running behind a reverse proxy.
+  app.set('trust proxy', 1);
+}
 
 // Security Middleware
 app.use(
@@ -41,7 +38,7 @@ app.use(
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  process.env.CLIENT_URL
+  env.clientUrl
 ].filter(Boolean);
 
 app.use(
@@ -52,13 +49,12 @@ app.use(
 
       if (
         allowedOrigins.includes(origin) ||
-        origin.startsWith('http://localhost:')
+        (!env.isProduction && origin.startsWith('http://localhost:'))
       ) {
         return callback(null, true);
       }
 
-      // Preserve the existing permissive CORS behavior.
-      return callback(null, true);
+      return callback(null, false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -84,17 +80,26 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Sana Fatma Portfolio API',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'fallback',
     timestamp: new Date().toISOString()
   });
 });
 
+// Unknown API routes should return JSON rather than the SPA/HTML.
+app.use('/api', (req, res) => {
+  res.status(404).json({ success: false, message: 'API endpoint not found.' });
+});
+
 // Centralized Error Handler
 app.use((err, req, res, next) => {
-  console.error('[Server Error]:', err.stack);
+  if (res.headersSent) return next(err);
 
-  res.status(err.status || 500).json({
+  console.error('[Server Error]:', err.stack || err);
+
+  const status = err.status || err.statusCode || 500;
+  res.status(status).json({
     success: false,
-    message: err.message || 'Internal Server Error'
+    message: status >= 500 ? 'Internal Server Error' : err.message
   });
 });
 
@@ -102,11 +107,19 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
   await connectDB();
 
-  app.listen(PORT, () => {
+  const server = app.listen(env.port, () => {
     console.log(
-      `[Portfolio Backend] Server active and listening on http://localhost:${PORT}`
+      `[Portfolio Backend] Server active and listening on http://localhost:${env.port}`
     );
+  });
+
+  server.on('error', (error) => {
+    console.error('[Portfolio Backend] Failed to start:', error.message);
+    process.exitCode = 1;
   });
 };
 
-startServer();
+startServer().catch((error) => {
+  console.error('[Portfolio Backend] Fatal startup error:', error);
+  process.exitCode = 1;
+});

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { PortfolioProvider, usePortfolio } from './context/PortfolioContext';
 import { AuthProvider } from './context/AuthContext';
@@ -19,14 +19,14 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 const PublicPortfolio = () => {
   const { data: portfolioData, isLoading } = usePortfolio();
   const [isNarratingGlobal, setIsNarratingGlobal] = useState(false);
+  const [narrationCommand, setNarrationCommand] = useState(0);
 
-  // Jump to narration trigger
-  const handleTriggerNarration = () => {
-    const aboutSection = document.getElementById('about');
-    if (aboutSection) {
-      aboutSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  // The About section owns narration state. This command asks it to
+  // start, pause, or resume based on its current playback state.
+  const handleTriggerNarration = useCallback(() => {
+    document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+    setNarrationCommand((command) => command + 1);
+  }, []);
 
   if (isLoading && !portfolioData) {
     return (
@@ -57,12 +57,13 @@ const PublicPortfolio = () => {
       <Navbar
         onTriggerNarration={handleTriggerNarration}
         isNarrating={isNarratingGlobal}
+        resumeUrl={heroData?.resumeUrl}
       />
       <main>
-        <Hero heroData={heroData} />
+        <Hero heroData={heroData} educationData={educationData} />
         <About
           aboutData={aboutData}
-          isNarratingGlobal={isNarratingGlobal}
+          narrationCommand={narrationCommand}
           setIsNarratingGlobal={setIsNarratingGlobal}
         />
         <Skills skillsData={skillsData} />
@@ -76,7 +77,7 @@ const PublicPortfolio = () => {
           certificatesData={certificatesData}
           galleryData={galleryData}
         />
-        <Contact socialLinksData={socialLinksData} />
+        <Contact socialLinksData={socialLinksData} resumeUrl={heroData?.resumeUrl} />
       </main>
 
       <Footer />

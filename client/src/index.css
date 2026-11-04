@@ -37,20 +37,31 @@ body {
   background-color: #0B1120;
   color: #E2E8F0;
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+  color-scheme: dark;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+/* Keep anchored sections clear of the fixed navigation bar. */
+section[id] {
+  scroll-margin-top: 6rem;
 }
 
 /* Developer Grid Pattern Overlay */
 body::before {
   content: "";
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 0;
   opacity: 0.025;
   background-size: 40px 40px;
   background-image: 
@@ -183,4 +194,52 @@ body::before {
 
 .holo-ring {
   animation: holo-spin 12s linear infinite;
+}
+
+/* Hide scrollbars on horizontal chip rails without disabling scrolling. */
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .holo-ring,
+  .mouth-speaking,
+  .wave-bar-1,
+  .wave-bar-2,
+  .wave-bar-3,
+  .wave-bar-4,
+  .wave-bar-5 {
+    animation: none !important;
+  }
 }

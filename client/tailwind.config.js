@@ -68,6 +68,7 @@ export default {
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'float': 'float 5s ease-in-out infinite',
         'blink': 'blink 4s infinite',
+        'fade-in': 'fade-in 0.35s ease-out both',
       },
       keyframes: {
         float: {
@@ -77,6 +78,10 @@ export default {
         blink: {
           '0%, 90%, 100%': { transform: 'scaleY(1)' },
           '95%': { transform: 'scaleY(0.1)' },
+        },
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(6px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         }
       }
     },

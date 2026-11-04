@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import {
   Shield, LogOut, ArrowLeft, Save, Upload, Trash2,
   CheckCircle2, AlertCircle, FileText, Eye, Key, User, Lock, Image as ImageIcon
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePortfolio } from '../../context/PortfolioContext';
+import api, { isApiCancel, resolveAssetUrl } from '../../services/api';
 import './AdminDashboard.css';
 
 export const AdminDashboard = () => {
@@ -42,148 +42,204 @@ export const AdminDashboard = () => {
   // Toast feedback
   const [toast, setToast] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const toastTimerRef = useRef(null);
 
-  // Sync working copy when portfolioData is loaded
+  const showToast = useCallback((type, message) => {
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+
+    setToast({ type, message });
+    toastTimerRef.current = window.setTimeout(() => {
+      setToast(null);
+      toastTimerRef.current = null;
+    }, 4000);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    },
+    []
+  );
+
+  // Sync working copy when portfolioData is loaded.
   useEffect(() => {
-    if (portfolioData) {
-      setHeroForm(portfolioData.hero || {});
-      setAboutForm(portfolioData.about || {});
-      setSkillsForm(portfolioData.skills || []);
-      setProjectsForm(portfolioData.projects || []);
-    }
+    if (!portfolioData) return;
+
+    setHeroForm(
+      portfolioData.hero && typeof portfolioData.hero === 'object' && !Array.isArray(portfolioData.hero)
+        ? portfolioData.hero
+        : {}
+    );
+    setAboutForm(
+      portfolioData.about && typeof portfolioData.about === 'object' && !Array.isArray(portfolioData.about)
+        ? portfolioData.about
+        : {}
+    );
+    setSkillsForm(Array.isArray(portfolioData.skills) ? portfolioData.skills : []);
+    setProjectsForm(Array.isArray(portfolioData.projects) ? portfolioData.projects : []);
   }, [portfolioData]);
 
-  useEffect(() => {
-    return () => {
+  // Release the local preview URL when it is replaced or the view unmounts.
+  useEffect(
+    () => () => {
       if (photoPreview) URL.revokeObjectURL(photoPreview);
-    };
-  }, [photoPreview]);
+    },
+    [photoPreview]
+  );
 
-  // Load contact messages when inbox tab is active
+  const fetchMessages = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      const res = await api.get('/api/contact/messages', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data?.success) {
+        setMessages(Array.isArray(res.data.messages) ? res.data.messages : []);
+      } else {
+        showToast('error', res.data?.message || 'Could not load contact messages.');
+      }
+    } catch (error) {
+      if (isApiCancel(error)) return;
+      console.error('Failed to fetch contact messages:', error);
+      showToast('error', error.response?.data?.message || 'Could not load contact messages.');
+    }
+  }, [token, showToast]);
+
+  // Load contact messages when inbox tab is active.
   useEffect(() => {
     if (isAuthenticated && activeTab === 'inbox' && token) {
       fetchMessages();
     }
-  }, [isAuthenticated, activeTab, token]);
-
-  const fetchMessages = async () => {
-    try {
-      const res = await axios.get('/api/contact/messages', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.data?.success) {
-        setMessages(res.data.messages || []);
-      }
-    } catch (err) {
-      console.error('Failed to fetch contact messages:', err);
-    }
-  };
-
-  const showToast = (type, message) => {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 4000);
-  };
+  }, [isAuthenticated, activeTab, token, fetchMessages]);
 
   // Auth actions
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
+  const handleLoginSubmit = async (event) => {
+    event.preventDefault();
+    if (isSubmittingAuth) return;
+
     setAuthError('');
     setIsSubmittingAuth(true);
-    const res = await login(username, password);
-    setIsSubmittingAuth(false);
-    if (!res.success) {
-      setAuthError(res.message);
-    } else {
+    try {
+      const res = await login(username.trim(), password);
+      if (!res.success) {
+        setAuthError(res.message || 'Invalid username or password.');
+        return;
+      }
+      setPassword('');
       showToast('success', 'Logged in successfully!');
+    } finally {
+      setIsSubmittingAuth(false);
     }
   };
 
-  const handleSetupSubmit = async (e) => {
-    e.preventDefault();
+  const handleSetupSubmit = async (event) => {
+    event.preventDefault();
+    if (isSubmittingAuth) return;
+
     setAuthError('');
     setIsSubmittingAuth(true);
-    const res = await setupAdmin(setupToken, username, email, password);
-    setIsSubmittingAuth(false);
-    if (!res.success) {
-      setAuthError(res.message);
-    } else {
+    try {
+      const res = await setupAdmin(setupToken.trim(), username.trim(), email.trim(), password);
+      if (!res.success) {
+        setAuthError(res.message || 'Setup failed.');
+        return;
+      }
+      setPassword('');
+      setSetupToken('');
       showToast('success', 'Initial Administrator account initialized successfully!');
+    } finally {
+      setIsSubmittingAuth(false);
     }
   };
 
-  // File uploader
-  const handleFileUpload = async (e, onComplete) => {
-    const file = e.target.files[0];
+  // File uploader for the hero portrait and resume.
+  const handleFileUpload = async (event, onComplete) => {
+    const input = event.target;
+    const file = input.files?.[0];
     if (!file) return;
+
+    if (file.size > 15 * 1024 * 1024) {
+      showToast('error', 'The selected file is larger than the 15 MB limit.');
+      input.value = '';
+      return;
+    }
 
     const formData = new FormData();
     formData.append('file', file);
 
     try {
       setIsSaving(true);
-      const res = await axios.post('/api/content/upload', formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
+      const res = await api.post('/api/content/upload', formData, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.data?.success) {
+
+      if (res.data?.success && res.data.fileUrl) {
         onComplete(res.data.fileUrl);
         showToast('success', `File ${file.name} uploaded successfully!`);
       } else {
-        showToast('error', res.data?.message || 'File upload failed');
+        showToast('error', res.data?.message || 'File upload failed.');
       }
-    } catch (err) {
-      showToast('error', err.response?.data?.message || 'Upload error');
+    } catch (error) {
+      if (!isApiCancel(error)) {
+        showToast('error', error.response?.data?.message || 'The file could not be uploaded.');
+      }
+    } finally {
+      setIsSaving(false);
+      input.value = '';
+    }
+  };
+
+  // Save section handler.
+  const saveSection = async (sectionName, sectionData) => {
+    if (isSaving) return;
+
+    setIsSaving(true);
+    try {
+      const res = await updateSectionData(sectionName, sectionData, token);
+      if (res.success) {
+        showToast('success', `Updated ${sectionName} successfully!`);
+        await refreshData();
+      } else {
+        showToast('error', res.message || 'Update failed.');
+      }
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Save section handler
-  const saveSection = async (sectionName, sectionData) => {
-    setIsSaving(true);
-    const res = await updateSectionData(sectionName, sectionData, token);
-    setIsSaving(false);
-    if (res.success) {
-      showToast('success', `Updated ${sectionName} successfully!`);
-      refreshData();
-    } else {
-      showToast('error', res.message || 'Update failed');
-    }
-  };
-
   const uploadAndSaveMedia = async ({ event, file, kind, section, item, onSaved }) => {
     event.preventDefault();
+    if (isSaving) return;
+
     if (!file) {
       showToast('error', `Choose a ${kind === 'photo' ? 'photo' : 'certificate file'} first.`);
       return;
     }
 
+    if (file.size > 15 * 1024 * 1024) {
+      showToast('error', 'The selected file is larger than the 15 MB limit.');
+      return;
+    }
+
     setIsSaving(true);
-    let fileUrl;
+    let fileUrl = '';
+
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const uploadResponse = await axios.post(`/api/content/media/${kind}`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
+      const uploadResponse = await api.post(`/api/content/media/${kind}`, formData, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      fileUrl = uploadResponse.data?.fileUrl;
+
+      fileUrl = uploadResponse.data?.fileUrl || '';
       if (!uploadResponse.data?.success || !fileUrl) {
         throw new Error(uploadResponse.data?.message || 'The file could not be uploaded.');
       }
 
-      const savedItem = section === 'gallery'
-        ? { ...item, url: fileUrl }
-        : { ...item, fileUrl };
-      const result = await updateSectionData(
-        section,
-        [...(portfolioData?.[section] || []), savedItem],
-        token
-      );
+      const savedItem = section === 'gallery' ? { ...item, url: fileUrl } : { ...item, fileUrl };
+      const existingItems = Array.isArray(portfolioData?.[section]) ? portfolioData[section] : [];
+      const result = await updateSectionData(section, [...existingItems, savedItem], token);
       if (!result.success) {
         throw new Error(result.message || 'The uploaded item could not be saved.');
       }
@@ -194,20 +250,34 @@ export const AdminDashboard = () => {
     } catch (error) {
       if (fileUrl) {
         try {
-          await axios.delete(`/api/content/upload/${encodeURIComponent(fileUrl.split('/').pop())}`, {
-            headers: { Authorization: `Bearer ${token}` }
+          const filename = fileUrl.split('/').pop();
+          await api.delete(`/api/content/upload/${encodeURIComponent(filename)}`, {
+            headers: { Authorization: `Bearer ${token}` },
           });
         } catch (cleanupError) {
           console.error('Could not clean up an unsaved upload:', cleanupError);
         }
       }
-      showToast('error', error.response?.data?.message || error.message || 'Could not save the uploaded file.');
+
+      if (!isApiCancel(error)) {
+        showToast(
+          'error',
+          error.response?.data?.message || error.message || 'Could not save the uploaded file.'
+        );
+      }
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleAddCertificate = (event) => {
+    const title = certificateDraft.title.trim();
+    if (!title) {
+      event.preventDefault();
+      showToast('error', 'Enter a certificate title first.');
+      return;
+    }
+
     uploadAndSaveMedia({
       event,
       file: certificateFile,
@@ -216,18 +286,30 @@ export const AdminDashboard = () => {
       item: {
         id: `certificate-${Date.now()}`,
         ...certificateDraft,
+        title,
+        issuer: certificateDraft.issuer.trim(),
+        date: certificateDraft.date.trim(),
+        description: certificateDraft.description.trim(),
+        credentialUrl: certificateDraft.credentialUrl.trim(),
         fileType: certificateFile?.type || '',
-        verified: true
+        verified: true,
       },
       onSaved: () => {
         setCertificateDraft({ title: '', issuer: '', date: '', description: '', credentialUrl: '' });
         setCertificateFile(null);
         if (certificateFileInput.current) certificateFileInput.current.value = '';
-      }
+      },
     });
   };
 
   const handleAddPhoto = (event) => {
+    const title = photoDraft.title.trim();
+    if (!title) {
+      event.preventDefault();
+      showToast('error', 'Enter a photo title first.');
+      return;
+    }
+
     uploadAndSaveMedia({
       event,
       file: photoFile,
@@ -236,72 +318,139 @@ export const AdminDashboard = () => {
       item: {
         id: `photo-${Date.now()}`,
         type: 'photo',
-        title: photoDraft.title,
-        caption: photoDraft.caption,
-        category: photoDraft.category,
+        title,
+        caption: photoDraft.caption.trim(),
+        category: photoDraft.category.trim(),
       },
       onSaved: () => {
         setPhotoDraft({ title: '', caption: '', category: '' });
         setPhotoFile(null);
+        setPhotoPreview('');
         if (photoFileInput.current) photoFileInput.current.value = '';
-      }
+      },
     });
   };
 
   const handleDeleteMediaItem = async (section, item, label) => {
+    if (isSaving) return;
     if (!window.confirm(`Delete this ${label.toLowerCase()} from your portfolio?`)) return;
 
-    const currentItems = portfolioData?.[section] || [];
-    const updatedItems = currentItems.filter((entry) => entry.id !== item.id);
-    setIsSaving(true);
-    const result = await updateSectionData(section, updatedItems, token);
-    if (!result.success) {
-      setIsSaving(false);
-      showToast('error', result.message || `Could not delete the ${label.toLowerCase()}.`);
+    const currentItems = Array.isArray(portfolioData?.[section]) ? portfolioData[section] : [];
+    const itemIndex = currentItems.indexOf(item);
+    const updatedItems = item.id
+      ? currentItems.filter((entry) => entry?.id !== item.id)
+      : currentItems.filter((_, index) => index !== itemIndex);
+
+    if (updatedItems.length === currentItems.length) {
+      showToast('error', `The ${label.toLowerCase()} could not be found. Refresh and try again.`);
       return;
     }
 
+    setIsSaving(true);
     let cleanupMessage = '';
-    const fileUrl = section === 'certificates' ? item.fileUrl : (item.url || item.fileUrl);
-    if (fileUrl?.startsWith('/uploads/')) {
-      try {
-        await axios.delete(`/api/content/upload/${encodeURIComponent(fileUrl.split('/').pop())}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-      } catch (error) {
-        cleanupMessage = error.response?.data?.message || 'The uploaded file could not be removed.';
-      }
-    }
 
-    await refreshData();
-    setIsSaving(false);
-    showToast(
-      cleanupMessage ? 'error' : 'success',
-      cleanupMessage
-        ? `${label} removed from the portfolio, but its file remains: ${cleanupMessage}`
-        : `${label} deleted successfully.`
-    );
+    try {
+      const result = await updateSectionData(section, updatedItems, token);
+      if (!result.success) {
+        showToast('error', result.message || `Could not delete the ${label.toLowerCase()}.`);
+        return;
+      }
+
+      const fileUrl = section === 'certificates' ? item.fileUrl : item.url || item.fileUrl;
+      if (typeof fileUrl === 'string' && fileUrl.startsWith('/uploads/')) {
+        try {
+          const filename = fileUrl.split('/').pop();
+          await api.delete(`/api/content/upload/${encodeURIComponent(filename)}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch (error) {
+          cleanupMessage = error.response?.data?.message || 'The uploaded file could not be removed.';
+        }
+      }
+
+      await refreshData();
+      showToast(
+        cleanupMessage ? 'error' : 'success',
+        cleanupMessage
+          ? `${label} removed from the portfolio, but its file remains: ${cleanupMessage}`
+          : `${label} deleted successfully.`
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const deleteMessageItem = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this message?')) return;
+    if (!id || !window.confirm('Are you sure you want to delete this message?')) return;
+
     try {
-      const res = await axios.delete(`/api/contact/messages/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const res = await api.delete(`/api/contact/messages/${encodeURIComponent(id)}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.data?.success) {
-        setMessages(prev => prev.filter(m => m._id !== id));
-        showToast('success', 'Message deleted');
+        setMessages((previous) => previous.filter((message) => message._id !== id));
+        showToast('success', 'Message deleted.');
+      } else {
+        showToast('error', res.data?.message || 'Could not delete the message.');
       }
-    } catch (err) {
-      showToast('error', 'Failed to delete message');
+    } catch (error) {
+      if (!isApiCancel(error)) {
+        showToast('error', error.response?.data?.message || 'Could not delete the message.');
+      }
     }
   };
+
+  const updateSkillCategory = (categoryIndex, updates) => {
+    setSkillsForm((previous) =>
+      previous.map((category, index) =>
+        index === categoryIndex ? { ...category, ...updates } : category
+      )
+    );
+  };
+
+  const removeSkillItem = (categoryIndex, itemIndex) => {
+    setSkillsForm((previous) =>
+      previous.map((category, index) =>
+        index === categoryIndex
+          ? {
+              ...category,
+              items: (Array.isArray(category.items) ? category.items : []).filter(
+                (_, index_) => index_ !== itemIndex
+              ),
+            }
+          : category
+      )
+    );
+  };
+
+  const updateProject = (projectIndex, updates) => {
+    setProjectsForm((previous) =>
+      previous.map((project, index) =>
+        index === projectIndex ? { ...project, ...updates } : project
+      )
+    );
+  };
+
+  // --------------------------------------------------------------------------
+  // SESSION VERIFICATION VIEW
+  // --------------------------------------------------------------------------
+  if (isAuthLoading) {
+    return (
+      <div className="admin-dashboard min-h-screen bg-midnight flex flex-col items-center justify-center gap-4 p-4">
+        <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-cyan via-indigo to-violet flex items-center justify-center font-heading text-xl text-midnight font-bold animate-pulse shadow-glow-cyan">
+          SF
+        </div>
+        <p className="font-mono-tech text-xs text-slate-muted uppercase tracking-widest">
+          Verifying admin session...
+        </p>
+      </div>
+    );
+  }
 
   // --------------------------------------------------------------------------
   // UNAUTHENTICATED VIEW: SIGN IN OR SECURE INITIAL SETUP
   // --------------------------------------------------------------------------
-  if (!isAuthenticated && !isAuthLoading) {
+  if (!isAuthenticated) {
     return (
       <div className="admin-dashboard min-h-screen bg-midnight flex items-center justify-center p-4">
         <div className="max-w-md w-full card-dev rounded-3xl p-8 shadow-card-dev-hover text-left relative overflow-hidden border-cyan/30">
@@ -594,7 +743,7 @@ export const AdminDashboard = () => {
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-6 border-b border-midnight-border">
                 <div className="w-24 h-24 rounded-2xl overflow-hidden bg-midnight-elevated border border-midnight-border shrink-0">
                   <img
-                    src={heroForm.portraitUrl || '/images/sana_portrait.jpg'}
+                    src={resolveAssetUrl(heroForm.portraitUrl) || '/images/sana_portrait.jpg'}
                     alt="Sana Portrait"
                     className="w-full h-full object-cover"
                   />
@@ -779,32 +928,28 @@ export const AdminDashboard = () => {
                     <input
                       type="text"
                       value={category.description || ''}
-                      onChange={(e) => {
-                        const updated = [...skillsForm];
-                        updated[catIdx].description = e.target.value;
-                        setSkillsForm(updated);
-                      }}
+                      onChange={(event) =>
+                        updateSkillCategory(catIdx, { description: event.target.value })
+                      }
                       className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
                     />
                   </div>
 
                   <div>
                     <span className="font-mono-tech text-xs text-slate-muted block mb-2">
-                      Technologies ({category.items.length}):
+                      Technologies ({(Array.isArray(category.items) ? category.items : []).length}):
                     </span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                      {category.items.map((item, itemIdx) => (
-                        <div key={itemIdx} className="p-2.5 rounded-xl bg-midnight-elevated border border-midnight-border flex items-center justify-between text-xs">
+                      {(Array.isArray(category.items) ? category.items : []).map((item, itemIdx) => (
+                        <div key={`${item?.name || 'skill'}-${itemIdx}`} className="p-2.5 rounded-xl bg-midnight-elevated border border-midnight-border flex items-center justify-between text-xs">
                           <div>
-                            <span className="font-bold text-slate-main font-mono-tech block">{item.name}</span>
-                            <span className="text-[10px] text-slate-muted">{item.focus}</span>
+                            <span className="font-bold text-slate-main font-mono-tech block">{item?.name}</span>
+                            <span className="text-[10px] text-slate-muted">{item?.focus}</span>
                           </div>
                           <button
-                            onClick={() => {
-                              const updated = [...skillsForm];
-                              updated[catIdx].items = updated[catIdx].items.filter((_, i) => i !== itemIdx);
-                              setSkillsForm(updated);
-                            }}
+                            type="button"
+                            onClick={() => removeSkillItem(catIdx, itemIdx)}
+                            aria-label={`Remove ${item?.name || 'skill'}`}
                             className="text-slate-muted hover:text-rose-400 p-1"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -853,11 +998,9 @@ export const AdminDashboard = () => {
                       <input
                         type="text"
                         value={proj.githubUrl || ''}
-                        onChange={(e) => {
-                          const updated = [...projectsForm];
-                          updated[pIdx].githubUrl = e.target.value;
-                          setProjectsForm(updated);
-                        }}
+                        onChange={(event) =>
+                          updateProject(pIdx, { githubUrl: event.target.value })
+                        }
                         className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
                       />
                     </div>
@@ -866,11 +1009,9 @@ export const AdminDashboard = () => {
                       <input
                         type="text"
                         value={proj.liveUrl || ''}
-                        onChange={(e) => {
-                          const updated = [...projectsForm];
-                          updated[pIdx].liveUrl = e.target.value;
-                          setProjectsForm(updated);
-                        }}
+                        onChange={(event) =>
+                          updateProject(pIdx, { liveUrl: event.target.value })
+                        }
                         placeholder="Leave blank if not deployed"
                         className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
                       />
@@ -882,11 +1023,9 @@ export const AdminDashboard = () => {
                     <textarea
                       rows={2}
                       value={proj.description || ''}
-                      onChange={(e) => {
-                        const updated = [...projectsForm];
-                        updated[pIdx].description = e.target.value;
-                        setProjectsForm(updated);
-                      }}
+                      onChange={(event) =>
+                        updateProject(pIdx, { description: event.target.value })
+                      }
                       className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan resize-none"
                     />
                   </div>
@@ -990,7 +1129,7 @@ export const AdminDashboard = () => {
                     <article key={certificate.id || index} className="card-dev rounded-2xl p-4 flex items-center gap-4 min-w-0">
                       <div className="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-midnight-elevated border border-midnight-border flex items-center justify-center">
                         {isImage && certificate.fileUrl
-                          ? <img src={certificate.fileUrl} alt={certificate.title} className="w-full h-full object-cover" />
+                          ? <img src={resolveAssetUrl(certificate.fileUrl)} alt={certificate.title} className="w-full h-full object-cover" />
                           : <FileText className="w-7 h-7 text-cyan" />}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -999,7 +1138,7 @@ export const AdminDashboard = () => {
                           {[certificate.issuer, certificate.date].filter(Boolean).join(' · ') || 'Certificate'}
                         </p>
                         {certificate.fileUrl && (
-                          <a href={certificate.fileUrl} target="_blank" rel="noopener noreferrer" className="font-mono-tech text-[10px] text-cyan hover:underline">
+                          <a href={resolveAssetUrl(certificate.fileUrl)} target="_blank" rel="noopener noreferrer" className="font-mono-tech text-[10px] text-cyan hover:underline">
                             Preview file
                           </a>
                         )}
@@ -1098,7 +1237,7 @@ export const AdminDashboard = () => {
                   .map((photo, index) => (
                     <article key={photo.id || index} className="card-dev rounded-2xl overflow-hidden min-w-0">
                       <div className="aspect-[4/3] bg-midnight-elevated">
-                        <img src={photo.url} alt={photo.title || 'Portfolio photo'} className="w-full h-full object-cover" />
+                        <img src={resolveAssetUrl(photo.url)} alt={photo.title || 'Portfolio photo'} className="w-full h-full object-cover" />
                       </div>
                       <div className="p-4 flex items-start gap-3">
                         <div className="min-w-0 flex-1">

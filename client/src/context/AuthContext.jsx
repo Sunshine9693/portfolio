@@ -1,22 +1,34 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import api, { isApiCancel } from '../services/api';
 
 const AuthContext = createContext();
+const TOKEN_KEY = 'sana_admin_token';
 
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('sana_admin_token') || '');
+  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || '');
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    setToken('');
+    setAdmin(null);
+  }, []);
+
   useEffect(() => {
+    const controller = new AbortController();
+
     const verifyToken = async () => {
       if (!token) {
+        setAdmin(null);
         setIsAuthLoading(false);
         return;
       }
+
       try {
-        const res = await axios.get('/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}` }
+        const res = await api.get('/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
         });
         if (res.data?.success) {
           setAdmin(res.data.admin);
@@ -24,60 +36,72 @@ export const AuthProvider = ({ children }) => {
           logout();
         }
       } catch (err) {
-        logout();
+        if (!isApiCancel(err)) logout();
       } finally {
-        setIsAuthLoading(false);
+        if (!controller.signal.aborted) setIsAuthLoading(false);
       }
     };
 
     verifyToken();
-  }, [token]);
 
-  const login = async (username, password) => {
+    return () => controller.abort();
+  }, [token, logout]);
+
+  const login = useCallback(async (username, password) => {
     try {
-      const res = await axios.post('/api/auth/login', { username, password });
+      const res = await api.post('/api/auth/login', { username, password });
       if (res.data?.success) {
         const receivedToken = res.data.token;
-        localStorage.setItem('sana_admin_token', receivedToken);
+        localStorage.setItem(TOKEN_KEY, receivedToken);
         setToken(receivedToken);
         setAdmin(res.data.admin);
         return { success: true };
       }
       return { success: false, message: res.data?.message || 'Login failed' };
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Invalid username or password' };
+      return {
+        success: false,
+        message: err.response?.data?.message || 'Invalid username or password',
+      };
     }
-  };
+  }, []);
 
-  const setupAdmin = async (setupToken, username, email, password) => {
+  const setupAdmin = useCallback(async (setupToken, username, email, password) => {
     try {
-      const res = await axios.post('/api/auth/setup-initial-admin', {
+      const res = await api.post('/api/auth/setup-initial-admin', {
         setupToken,
         username,
         email,
-        password
+        password,
       });
       if (res.data?.success) {
         const receivedToken = res.data.token;
-        localStorage.setItem('sana_admin_token', receivedToken);
+        localStorage.setItem(TOKEN_KEY, receivedToken);
         setToken(receivedToken);
         setAdmin(res.data.admin);
         return { success: true };
       }
       return { success: false, message: res.data?.message || 'Setup failed' };
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Setup failed' };
+      return {
+        success: false,
+        message: err.response?.data?.message || 'Setup failed',
+      };
     }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('sana_admin_token');
-    setToken('');
-    setAdmin(null);
-  };
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ admin, token, isAuthenticated: !!admin, isAuthLoading, login, setupAdmin, logout }}>
+    <AuthContext.Provider
+      value={{
+        admin,
+        token,
+        isAuthenticated: Boolean(admin),
+        isAuthLoading,
+        login,
+        setupAdmin,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

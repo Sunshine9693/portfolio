@@ -1,77 +1,117 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, RotateCcw, Square, Volume2, Sparkles, Layers, Brain, Code, CheckCircle2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Square,
+  Volume2,
+  Sparkles,
+  Layers,
+  Brain,
+  Code,
+  CheckCircle2,
+  AlertCircle,
+} from 'lucide-react';
 import { FemaleAIAvatar } from './FemaleAIAvatar';
 import { speechCoordinator } from '../../services/speechCoordinator';
 
-let hasAttemptedIntroductionAutoplay = false;
-const autoplayStatusKey = 'aura-introduction-autoplay-status';
+const DEFAULT_BIO =
+  "I'm Sana Fatma, a Computer Science and Engineering undergraduate passionate about building responsive web applications and exploring AI-powered experiences. Through personal projects, academic work, and three internships, I've been developing practical skills across frontend development, backend integration, databases, and Java programming. I enjoy turning ideas into functional products while continuously improving my problem-solving skills.";
 
-const getStoredAutoplayStatus = () => {
-  try {
-    return window.sessionStorage.getItem(autoplayStatusKey);
-  } catch {
-    return null;
-  }
-};
+const DEFAULT_NARRATION =
+  'Hi! Let me introduce you to Sana Fatma. She is a Computer Science and Engineering undergraduate at Maulana Azad National Urdu University, graduating in 2027. Sana is passionate about web development, software engineering, and artificial intelligence. She has worked on projects including AURA, her personalized AI assistant, and SnapShoes, an e-commerce application. Through internships and personal projects, she continues to develop her programming, frontend, backend, and problem-solving skills. Explore her projects to discover what she is building, and feel free to connect with her about relevant opportunities.';
 
-const storeAutoplayStatus = (status) => {
-  try {
-    window.sessionStorage.setItem(autoplayStatusKey, status);
-  } catch {
-    // The in-memory guard still prevents duplicate attempts when storage is unavailable.
-  }
-};
+const DEFAULT_HIGHLIGHTS = [
+  {
+    title: 'Full-Stack Foundations',
+    description:
+      'Hands-on experience developing modular interfaces with React and connecting RESTful Express services with MongoDB.',
+    icon: 'Layers',
+  },
+  {
+    title: 'AI & Conversational UX',
+    description:
+      'Building voice-first AI assistants and LLM integrations grounded in practical task automation.',
+    icon: 'Brain',
+  },
+  {
+    title: 'Core Problem Solving',
+    description:
+      'Strong foundation in Data Structures and Algorithms with C, C++, and object-oriented Java development.',
+    icon: 'Code',
+  },
+];
 
-export const About = ({ aboutData }) => {
-  const [playbackState, setPlaybackState] = useState(() => {
-    const previousStatus = getStoredAutoplayStatus();
-    return previousStatus === 'completed' || previousStatus === 'stopped' ? previousStatus : 'idle';
-  });
+const HIGHLIGHT_ICONS = { Layers, Brain, Code };
+const HIGHLIGHT_STYLES = [
+  { wrapper: 'border-cyan/30', text: 'text-cyan' },
+  { wrapper: 'border-violet/30', text: 'text-violet' },
+  { wrapper: 'border-indigo/30', text: 'text-indigo-light' },
+];
+
+const safeText = (value, fallback) =>
+  typeof value === 'string' && value.trim() ? value.trim() : fallback;
+
+export const About = ({ aboutData, narrationCommand, setIsNarratingGlobal }) => {
+  const [playbackState, setPlaybackState] = useState('idle');
   const [activeSentenceIndex, setActiveSentenceIndex] = useState(-1);
   const [currentSentenceText, setCurrentSentenceText] = useState('');
-  const [autoplayBlocked, setAutoplayBlocked] = useState(() =>
-    ['attempted', 'blocked', 'started'].includes(getStoredAutoplayStatus())
-  );
+  const [speechError, setSpeechError] = useState('');
   const narrationRunRef = useRef(0);
-  const autoplayTimerRef = useRef(null);
+  const previousCommandRef = useRef(narrationCommand ?? 0);
 
-  const defaultNarration =
-    "Hi! Let me introduce you to Sana Fatma. She is a Computer Science and Engineering undergraduate at Maulana Azad National Urdu University, graduating in 2027. Sana is passionate about web development, software engineering, and artificial intelligence. She has worked on projects including AURA, her personalized AI assistant, and SnapShoes, an e-commerce application. Through internships and personal projects, she continues to develop her programming, frontend, backend, and problem-solving skills. Explore her projects to discover what she is building, and feel free to connect with her about relevant opportunities.";
+  const narrationScript = safeText(aboutData?.narrationScript, DEFAULT_NARRATION);
+  const bio = safeText(aboutData?.bio, DEFAULT_BIO);
+  const subtitle = safeText(
+    aboutData?.subtitle,
+    'Bridging Frontend Craftsmanship with AI Innovation'
+  );
+  const title = safeText(aboutData?.title, 'ABOUT ME');
 
-  const narrationScript = aboutData?.narrationScript || defaultNarration;
+  const highlights = useMemo(() => {
+    const configured = Array.isArray(aboutData?.highlights)
+      ? aboutData.highlights.filter((highlight) => highlight && typeof highlight === 'object')
+      : [];
+    return configured.length > 0 ? configured : DEFAULT_HIGHLIGHTS;
+  }, [aboutData?.highlights]);
 
-  const sentences = React.useMemo(() => {
-    return narrationScript
-      .split(/(?<=[.!?])\s+/)
-      .filter((s) => s.trim().length > 0);
-  }, [narrationScript]);
+  const sentences = useMemo(
+    () => narrationScript.split(/(?<=[.!?])\s+/).filter((sentence) => sentence.trim().length > 0),
+    [narrationScript]
+  );
 
-  // Subscribe to speech coordinator events
+  // Keep the navbar narration indicator in sync with the real playback state.
+  useEffect(() => {
+    setIsNarratingGlobal?.(playbackState === 'speaking');
+  }, [playbackState, setIsNarratingGlobal]);
+
+  useEffect(
+    () => () => {
+      setIsNarratingGlobal?.(false);
+    },
+    [setIsNarratingGlobal]
+  );
+
+  // Subscribe to coordinator events so the two speech features never overlap.
   useEffect(() => {
     const unsubscribe = speechCoordinator.subscribe((event) => {
-      if (event.source !== 'about') {
-        // If another source (like assistant) started, reset about state
-        setPlaybackState('idle');
-        setActiveSentenceIndex(-1);
-        setCurrentSentenceText('');
-      } else if (event.type === 'stop') {
+      if (event.source !== 'about') return;
+
+      if (event.type === 'stop') {
         setPlaybackState('stopped');
         setActiveSentenceIndex(-1);
         setCurrentSentenceText('');
-        storeAutoplayStatus('stopped');
       } else if (event.type === 'end') {
         setPlaybackState('completed');
         setActiveSentenceIndex(-1);
         setCurrentSentenceText('');
-        storeAutoplayStatus('completed');
       } else if (event.type === 'start') {
         setPlaybackState('speaking');
       } else if (event.type === 'error') {
         setPlaybackState('idle');
         setActiveSentenceIndex(-1);
         setCurrentSentenceText('');
-        setAutoplayBlocked(true);
-        storeAutoplayStatus('blocked');
+        setSpeechError('Audio narration could not start in this browser. You can still read the full introduction below.');
       } else if (event.type === 'pause') {
         setPlaybackState('paused');
       } else if (event.type === 'resume') {
@@ -81,42 +121,27 @@ export const About = ({ aboutData }) => {
 
     return () => {
       unsubscribe();
-      window.clearTimeout(autoplayTimerRef.current);
       speechCoordinator.stop('about');
     };
   }, []);
 
-  const startNarration = useCallback((autoplay = false) => {
+  const startNarration = useCallback(() => {
     const runId = ++narrationRunRef.current;
-    window.clearTimeout(autoplayTimerRef.current);
-    setAutoplayBlocked(false);
-    storeAutoplayStatus('attempted');
+    setSpeechError('');
 
     if (!('speechSynthesis' in window)) {
       setPlaybackState('idle');
-      setAutoplayBlocked(true);
-      storeAutoplayStatus('blocked');
+      setSpeechError('Speech synthesis is not supported in this browser. Please use a modern browser to listen.');
       return false;
     }
 
     let charOffset = 0;
-    const sentenceOffsets = sentences.map((s) => {
-      const start = narrationScript.indexOf(s, charOffset);
-      charOffset = start + s.length;
-      return { start, end: charOffset, text: s };
+    const sentenceOffsets = sentences.map((sentence) => {
+      const foundIndex = narrationScript.indexOf(sentence, charOffset);
+      const start = foundIndex >= 0 ? foundIndex : charOffset;
+      charOffset = start + sentence.length;
+      return { start, end: charOffset, text: sentence };
     });
-
-    let started = false;
-    if (autoplay) {
-      autoplayTimerRef.current = window.setTimeout(() => {
-        if (narrationRunRef.current !== runId || started) return;
-        narrationRunRef.current += 1;
-        speechCoordinator.stop('about');
-        setPlaybackState('idle');
-        setAutoplayBlocked(true);
-        storeAutoplayStatus('blocked');
-      }, 5000);
-    }
 
     const didQueueSpeech = speechCoordinator.speak({
       text: narrationScript,
@@ -125,71 +150,46 @@ export const About = ({ aboutData }) => {
       pitch: 1.05,
       onStart: () => {
         if (narrationRunRef.current !== runId) return;
-        started = true;
-        window.clearTimeout(autoplayTimerRef.current);
         setPlaybackState('speaking');
-        setAutoplayBlocked(false);
-        storeAutoplayStatus('started');
+        setSpeechError('');
         setActiveSentenceIndex(0);
         setCurrentSentenceText(sentences[0] || '');
       },
       onBoundary: (event) => {
         if (narrationRunRef.current !== runId) return;
-        if (event.name === 'sentence' || event.name === 'word') {
-          const current = sentenceOffsets.find(
-            (range) => event.charIndex >= range.start && event.charIndex <= range.end
-          );
-          if (current) {
-            setActiveSentenceIndex(sentenceOffsets.indexOf(current));
-            setCurrentSentenceText(current.text);
-          }
+        if (event.name !== 'sentence' && event.name !== 'word') return;
+
+        const current = sentenceOffsets.find(
+          (range) => event.charIndex >= range.start && event.charIndex <= range.end
+        );
+        if (current) {
+          setActiveSentenceIndex(sentenceOffsets.indexOf(current));
+          setCurrentSentenceText(current.text);
         }
       },
       onEnd: () => {
         if (narrationRunRef.current !== runId) return;
-        window.clearTimeout(autoplayTimerRef.current);
         setPlaybackState('completed');
         setActiveSentenceIndex(-1);
         setCurrentSentenceText('');
-        storeAutoplayStatus('completed');
       },
       onError: () => {
         if (narrationRunRef.current !== runId) return;
-        window.clearTimeout(autoplayTimerRef.current);
         setPlaybackState('idle');
-        setAutoplayBlocked(true);
         setActiveSentenceIndex(-1);
         setCurrentSentenceText('');
-        storeAutoplayStatus('blocked');
-      }
+        setSpeechError('Audio narration was interrupted. Press Play Introduction to try again.');
+      },
     });
 
     if (!didQueueSpeech) {
-      window.clearTimeout(autoplayTimerRef.current);
       setPlaybackState('idle');
-      setAutoplayBlocked(true);
-      storeAutoplayStatus('blocked');
+      setSpeechError('Audio narration could not start in this browser. You can still read the full introduction below.');
       return false;
     }
 
     return true;
   }, [narrationScript, sentences]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const previousStatus = getStoredAutoplayStatus();
-      if (hasAttemptedIntroductionAutoplay || previousStatus) {
-        hasAttemptedIntroductionAutoplay = true;
-        setAutoplayBlocked(['attempted', 'blocked', 'started'].includes(previousStatus));
-        return;
-      }
-      hasAttemptedIntroductionAutoplay = true;
-      storeAutoplayStatus('attempted');
-      startNarration(true);
-    }, 0);
-
-    return () => window.clearTimeout(timer);
-  }, [startNarration]);
 
   const pauseNarration = () => {
     speechCoordinator.pause();
@@ -201,47 +201,47 @@ export const About = ({ aboutData }) => {
 
   const stopNarration = () => {
     narrationRunRef.current += 1;
-    window.clearTimeout(autoplayTimerRef.current);
     speechCoordinator.stop('about');
     setPlaybackState('stopped');
     setActiveSentenceIndex(-1);
     setCurrentSentenceText('');
-    storeAutoplayStatus('stopped');
   };
 
   const replayNarration = () => {
     startNarration();
   };
 
+  // The navbar sends a command; About decides whether it should play, pause,
+  // or resume based on the current narration state.
+  useEffect(() => {
+    if (narrationCommand === previousCommandRef.current) return;
+    previousCommandRef.current = narrationCommand;
+
+    if (playbackState === 'speaking') {
+      speechCoordinator.pause();
+    } else if (playbackState === 'paused') {
+      speechCoordinator.resume();
+    } else {
+      startNarration();
+    }
+  }, [narrationCommand, playbackState, startNarration]);
+
+  const isSpeaking = playbackState === 'speaking';
+
   return (
     <section id="about" className="relative py-24 px-4 sm:px-6 lg:px-8 border-t border-midnight-border bg-midnight-surface/50">
-      {autoplayBlocked && playbackState === 'idle' && (
-        <div
-          aria-live="polite"
-          className="fixed bottom-24 right-4 z-40 flex max-w-[calc(100vw-2rem)] items-center gap-3 rounded-2xl border border-cyan/40 bg-midnight-card/95 p-3 shadow-xl backdrop-blur-md"
-        >
-          <span className="font-mono-tech text-[10px] text-slate-muted">Ready when you are</span>
-          <button
-            onClick={() => startNarration()}
-            className="btn-primary shrink-0 px-3 py-2 rounded-xl text-[10px] font-mono-tech font-bold uppercase flex items-center gap-1.5"
-          >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>Play Introduction</span>
-          </button>
-        </div>
-      )}
       <div className="max-w-7xl mx-auto text-left">
         {/* Section Header */}
         <div className="max-w-3xl mb-14 space-y-3">
           <div className="flex items-center gap-2 text-cyan font-mono-tech text-xs uppercase tracking-widest font-bold">
             <Sparkles className="w-3.5 h-3.5 text-violet" />
-            <span>Interactive Virtual Introduction</span>
+            <span>{title} • Interactive Virtual Introduction</span>
           </div>
           <h2 className="font-heading text-4xl sm:text-6xl text-slate-main tracking-tight uppercase leading-none">
             MEET SANA FATMA
           </h2>
           <p className="font-sans text-sm sm:text-base text-slate-muted">
-            Computer Science undergraduate at MANUU with a focus on web development, software engineering, and AI applications.
+            {subtitle}
           </p>
         </div>
 
@@ -250,12 +250,11 @@ export const About = ({ aboutData }) => {
           {/* Left Column (5 cols): Animated AI Guide Character */}
           <div className="lg:col-span-5 flex flex-col items-center">
             <div className="card-dev rounded-3xl p-6 sm:p-8 w-full flex flex-col items-center justify-between border-cyan/30 shadow-card-dev-hover">
-              {/* Virtual Guide Avatar */}
               <FemaleAIAvatar
-                isSpeaking={playbackState === 'speaking'}
+                isSpeaking={isSpeaking}
                 isPaused={playbackState === 'paused'}
                 currentSentenceText={currentSentenceText}
-                autoplayBlocked={autoplayBlocked}
+                speechError={Boolean(speechError)}
                 playbackState={playbackState}
               />
 
@@ -266,13 +265,21 @@ export const About = ({ aboutData }) => {
                 </span>
 
                 <span role="status" className="font-mono-tech text-[10px] text-cyan uppercase tracking-wider">
-                  {playbackState === 'speaking' ? 'Speaking' : playbackState === 'paused' ? 'Paused' : playbackState === 'stopped' ? 'Stopped' : playbackState === 'completed' ? 'Completed' : 'Ready'}
+                  {playbackState === 'speaking'
+                    ? 'Speaking'
+                    : playbackState === 'paused'
+                      ? 'Paused'
+                      : playbackState === 'stopped'
+                        ? 'Stopped'
+                        : playbackState === 'completed'
+                          ? 'Completed'
+                          : 'Ready'}
                 </span>
 
                 <div className="flex flex-wrap items-center justify-center gap-2">
                   {['idle', 'stopped', 'completed'].includes(playbackState) && (
                     <button
-                      onClick={() => startNarration()}
+                      onClick={startNarration}
                       aria-label={playbackState === 'completed' ? 'Replay Introduction' : 'Play Introduction'}
                       className="btn-primary px-6 py-2.5 rounded-xl text-xs font-mono-tech font-bold uppercase flex items-center gap-2 shadow-glow-cyan"
                     >
@@ -307,6 +314,7 @@ export const About = ({ aboutData }) => {
                         onClick={replayNarration}
                         className="p-2.5 rounded-xl border border-midnight-border bg-midnight-elevated text-slate-muted hover:text-slate-main transition-colors"
                         title="Replay from start"
+                        aria-label="Replay introduction from start"
                       >
                         <RotateCcw className="w-4 h-4" />
                       </button>
@@ -322,9 +330,19 @@ export const About = ({ aboutData }) => {
                   )}
                 </div>
 
+                {speechError && (
+                  <div
+                    role="alert"
+                    className="mt-1 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-2.5 text-left text-[11px] font-sans text-amber-200"
+                  >
+                    <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <span>{speechError}</span>
+                  </div>
+                )}
+
                 <div className="text-[11px] font-sans text-slate-muted text-center flex items-center gap-1.5 mt-1">
                   <Volume2 className="w-3.5 h-3.5 text-cyan" />
-                  <span>Spoken via natural female English speech synthesis</span>
+                  <span>Spoken via browser speech synthesis • Press play whenever you are ready</span>
                 </div>
               </div>
             </div>
@@ -340,28 +358,35 @@ export const About = ({ aboutData }) => {
                 <span className="text-[11px] text-slate-muted">MANUU • B.Tech CSE 2027</span>
               </div>
 
-              {/* Written Bio Header */}
               <h3 className="font-heading text-2xl sm:text-3xl text-slate-main tracking-wide uppercase mb-4">
                 "CRAFTING ACCESSIBLE CODE & EXPLORING INTELLIGENT AI EXPERIENCES."
               </h3>
 
-              {/* Dynamic Sentence Highlighting */}
-              <div className="text-sm sm:text-base text-slate-main/90 leading-relaxed font-sans space-y-3">
-                {sentences.map((sentence, idx) => {
-                  const isActive = playbackState === 'speaking' && activeSentenceIndex === idx;
-                  return (
-                    <span
-                      key={idx}
-                      className={`inline-block mr-1.5 transition-all duration-300 rounded px-1.5 py-0.5 ${
-                        isActive
-                          ? 'sentence-active font-medium shadow-glow-cyan'
-                          : ''
-                      }`}
-                    >
-                      {sentence}{' '}
-                    </span>
-                  );
-                })}
+              <p className="text-sm sm:text-base text-slate-main/90 leading-relaxed font-sans">
+                {bio}
+              </p>
+
+              <div className="mt-7 pt-5 border-t border-midnight-border/70">
+                <div className="mb-3 flex items-center gap-2 font-mono-tech text-xs uppercase tracking-widest text-slate-muted">
+                  <Volume2 className="h-3.5 w-3.5 text-cyan" />
+                  <span>Audio Narration Transcript</span>
+                </div>
+
+                <div className="text-sm sm:text-base text-slate-main/90 leading-relaxed font-sans space-y-3">
+                  {sentences.map((sentence, index) => {
+                    const isActive = isSpeaking && activeSentenceIndex === index;
+                    return (
+                      <span
+                        key={`${sentence}-${index}`}
+                        className={`inline-block mr-1.5 transition-all duration-300 rounded px-1.5 py-0.5 ${
+                          isActive ? 'sentence-active font-medium shadow-glow-cyan' : ''
+                        }`}
+                      >
+                        {sentence}{' '}
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Source verification footer */}
@@ -378,56 +403,32 @@ export const About = ({ aboutData }) => {
 
         {/* Three Core Engineering Pillars */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="card-dev rounded-2xl p-6 flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-midnight-elevated border border-cyan/30 flex items-center justify-center text-cyan">
-                <Layers className="w-5 h-5" />
-              </div>
-              <h4 className="font-heading text-xl text-slate-main tracking-wide uppercase">
-                FULL-STACK DEVELOPMENT
-              </h4>
-              <p className="font-sans text-xs sm:text-sm text-slate-muted leading-relaxed">
-                Building responsive web interfaces with React.js, Tailwind CSS, and connecting RESTful Express services with MongoDB databases.
-              </p>
-            </div>
-            <div className="pt-4 mt-4 border-t border-midnight-border text-[11px] font-mono-tech text-cyan">
-              React • Node • Express • Mongo
-            </div>
-          </div>
+          {highlights.map((highlight, index) => {
+            const Icon = HIGHLIGHT_ICONS[highlight.icon] || HIGHLIGHT_ICONS.Layers;
+            const style = HIGHLIGHT_STYLES[index % HIGHLIGHT_STYLES.length];
 
-          <div className="card-dev rounded-2xl p-6 flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-midnight-elevated border border-violet/30 flex items-center justify-center text-violet">
-                <Brain className="w-5 h-5" />
+            return (
+              <div
+                key={`${highlight.title || 'highlight'}-${index}`}
+                className="card-dev rounded-2xl p-6 flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div className={`w-10 h-10 rounded-xl bg-midnight-elevated border ${style.wrapper} flex items-center justify-center ${style.text}`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <h4 className="font-heading text-xl text-slate-main tracking-wide uppercase">
+                    {highlight.title || 'Core Highlight'}
+                  </h4>
+                  <p className="font-sans text-xs sm:text-sm text-slate-muted leading-relaxed">
+                    {highlight.description || ''}
+                  </p>
+                </div>
+                <div className={`pt-4 mt-4 border-t border-midnight-border text-[11px] font-mono-tech ${style.text}`}>
+                  Highlight 0{index + 1} • Verified Profile
+                </div>
               </div>
-              <h4 className="font-heading text-xl text-slate-main tracking-wide uppercase">
-                AI & CONVERSATIONAL UX
-              </h4>
-              <p className="font-sans text-xs sm:text-sm text-slate-muted leading-relaxed">
-                Developing intelligent assistants like AURA with speech recognition, prompt grounding, notes, and productivity tooling.
-              </p>
-            </div>
-            <div className="pt-4 mt-4 border-t border-midnight-border text-[11px] font-mono-tech text-violet">
-              LLM APIs • Speech APIs • Python
-            </div>
-          </div>
-
-          <div className="card-dev rounded-2xl p-6 flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-midnight-elevated border border-indigo/30 flex items-center justify-center text-indigo">
-                <Code className="w-5 h-5" />
-              </div>
-              <h4 className="font-heading text-xl text-slate-main tracking-wide uppercase">
-                CORE PROBLEM SOLVING
-              </h4>
-              <p className="font-sans text-xs sm:text-sm text-slate-muted leading-relaxed">
-                Solid foundation in Data Structures and Algorithms with C, C++, and object-oriented Java programming across three internships.
-              </p>
-            </div>
-            <div className="pt-4 mt-4 border-t border-midnight-border text-[11px] font-mono-tech text-indigo">
-              Java OOP • Data Structures • C/C++
-            </div>
-          </div>
+            );
+          })}
         </div>
       </div>
     </section>

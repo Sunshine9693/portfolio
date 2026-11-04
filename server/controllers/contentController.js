@@ -10,6 +10,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const localCacheFile = path.join(__dirname, '..', 'data', 'activePortfolioData.json');
 
+const OBJECT_SECTIONS = new Set(['hero', 'about', 'education', 'socialLinks', 'sectionVisibility']);
+const ARRAY_SECTIONS = new Set([
+  'skills',
+  'projects',
+  'internships',
+  'achievements',
+  'certificates',
+  'gallery',
+]);
+const VALID_SECTIONS = new Set([...OBJECT_SECTIONS, ...ARRAY_SECTIONS]);
+const MAX_SECTION_BYTES = 1024 * 1024;
+
 // In-memory cache fallback initialized from defaultPortfolioData or local cache file
 let inMemoryData = { ...defaultPortfolioData };
 if (fs.existsSync(localCacheFile)) {
@@ -22,11 +34,62 @@ if (fs.existsSync(localCacheFile)) {
 }
 
 const persistLocalCache = (data) => {
+  const temporaryFile = `${localCacheFile}.${process.pid}.tmp`;
+
   try {
-    fs.writeFileSync(localCacheFile, JSON.stringify(data, null, 2), 'utf8');
+    fs.mkdirSync(path.dirname(localCacheFile), { recursive: true });
+    fs.writeFileSync(temporaryFile, JSON.stringify(data, null, 2), 'utf8');
+    fs.renameSync(temporaryFile, localCacheFile);
   } catch (err) {
     console.error('Failed to write localCacheFile:', err);
+    try {
+      if (fs.existsSync(temporaryFile)) fs.unlinkSync(temporaryFile);
+    } catch (cleanupError) {
+      console.error('Failed to clean up temporary cache file:', cleanupError);
+    }
   }
+};
+
+const toPlainValue = (value) => {
+  if (value && typeof value.toObject === 'function') return value.toObject();
+  return JSON.parse(JSON.stringify(value));
+};
+
+const validateSectionPayload = (section, data) => {
+  if (!VALID_SECTIONS.has(section)) {
+    return 'Unknown portfolio section.';
+  }
+
+  if (data === null || typeof data !== 'object') {
+    return 'Section data must be an object or an array.';
+  }
+
+  if (OBJECT_SECTIONS.has(section) && Array.isArray(data)) {
+    return `The '${section}' section must be an object.`;
+  }
+
+  if (ARRAY_SECTIONS.has(section)) {
+    if (!Array.isArray(data)) {
+      return `The '${section}' section must be an array.`;
+    }
+    if (data.length > 200) {
+      return `The '${section}' section contains too many entries.`;
+    }
+    if (data.some((item) => !item || typeof item !== 'object' || Array.isArray(item))) {
+      return `Every entry in '${section}' must be an object.`;
+    }
+  }
+
+  if (section === 'sectionVisibility') {
+    const invalidEntry = Object.entries(data).find(([, value]) => typeof value !== 'boolean');
+    if (invalidEntry) return 'Section visibility values must be true or false.';
+  }
+
+  if (Buffer.byteLength(JSON.stringify(data), 'utf8') > MAX_SECTION_BYTES) {
+    return `The '${section}' section is too large.`;
+  }
+
+  return null;
 };
 
 export const getPublicData = async (req, res) => {
@@ -49,14 +112,12 @@ export const getPublicData = async (req, res) => {
 
 export const updateSection = async (req, res) => {
   try {
-    const { section, data } = req.body;
+    const { section, data } = req.body || {};
+    const validationError = validateSectionPayload(section, data);
 
-    if (!section || data === undefined) {
-      return res.status(400).json({ success: false, message: 'Please provide both section name and update data.' });
+    if (validationError) {
+      return res.status(400).json({ success: false, message: validationError });
     }
-
-    inMemoryData[section] = data;
-    persistLocalCache(inMemoryData);
 
     if (mongoose.connection.readyState === 1) {
       let portfolioDoc = await PortfolioData.findOne().sort({ updatedAt: -1 });
@@ -68,43 +129,28 @@ export const updateSection = async (req, res) => {
       portfolioDoc.markModified(section);
       await portfolioDoc.save();
 
+      const savedData = toPlainValue(portfolioDoc[section]);
+      inMemoryData = { ...inMemoryData, [section]: savedData };
+      persistLocalCache(inMemoryData);
+
       return res.json({
         success: true,
         message: `Section '${section}' updated successfully.`,
-        data: portfolioDoc[section]
+        data: savedData,
       });
     }
+
+    inMemoryData = { ...inMemoryData, [section]: data };
+    persistLocalCache(inMemoryData);
 
     return res.json({
       success: true,
       message: `Section '${section}' updated in persistent local storage.`,
-      data: inMemoryData[section]
+      data,
     });
   } catch (error) {
     console.error('updateSection error:', error);
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-export const uploadAsset = (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No file was uploaded.' });
-    }
-
-    const fileUrl = `/uploads/${req.file.filename}`;
-    return res.status(201).json({
-      success: true,
-      message: 'File uploaded successfully.',
-      fileUrl,
-      fileName: req.file.filename,
-      originalName: req.file.originalname,
-      size: req.file.size,
-      mimetype: req.file.mimetype
-    });
-  } catch (error) {
-    console.error('uploadAsset error:', error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: 'Could not update the portfolio section.' });
   }
 };
 
@@ -133,25 +179,73 @@ const hasValidFileSignature = (filePath, mimetype) => {
   return false;
 };
 
+const removeInvalidUpload = (filePath) => {
+  try {
+    if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  } catch (error) {
+    console.error('Failed to remove invalid upload:', error);
+  }
+};
+
+export const uploadAsset = (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file was uploaded.' });
+    }
+
+    if (!hasValidFileSignature(req.file.path, req.file.mimetype)) {
+      removeInvalidUpload(req.file.path);
+      return res.status(400).json({
+        success: false,
+        message: 'The uploaded file contents do not match its file type.',
+      });
+    }
+
+    const fileUrl = `/uploads/${req.file.filename}`;
+    return res.status(201).json({
+      success: true,
+      message: 'File uploaded successfully.',
+      fileUrl,
+      fileName: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+    });
+  } catch (error) {
+    console.error('uploadAsset error:', error);
+    removeInvalidUpload(req.file?.path);
+    return res.status(500).json({ success: false, message: 'The file could not be uploaded.' });
+  }
+};
+
 export const uploadManagedAsset = (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: false, message: 'Choose a file to upload.' });
-  }
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Choose a file to upload.' });
+    }
 
-  if (!hasValidFileSignature(req.file.path, req.file.mimetype)) {
-    fs.unlinkSync(req.file.path);
-    return res.status(400).json({ success: false, message: 'The uploaded file contents do not match its file type.' });
-  }
+    if (!hasValidFileSignature(req.file.path, req.file.mimetype)) {
+      removeInvalidUpload(req.file.path);
+      return res.status(400).json({
+        success: false,
+        message: 'The uploaded file contents do not match its file type.',
+      });
+    }
 
-  return res.status(201).json({
-    success: true,
-    message: 'File uploaded successfully.',
-    fileUrl: `/uploads/${req.file.filename}`,
-    fileName: req.file.filename,
-    originalName: req.file.originalname,
-    size: req.file.size,
-    mimetype: req.file.mimetype,
-  });
+    return res.status(201).json({
+      success: true,
+      message: 'File uploaded successfully.',
+      fileUrl: `/uploads/${req.file.filename}`,
+      fileName: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+    });
+  } catch (error) {
+    console.error('uploadManagedAsset error:', error);
+    removeInvalidUpload(req.file?.path);
+    return res.status(500).json({ success: false, message: 'The file could not be uploaded.' });
+  }
 };
 
 export const deleteUploadedAsset = async (req, res) => {
@@ -176,9 +270,9 @@ export const deleteUploadedAsset = async (req, res) => {
     const referencedUrls = [
       portfolio.hero?.portraitUrl,
       portfolio.hero?.resumeUrl,
-      ...(portfolio.projects || []).map((item) => item.imageUrl),
-      ...(portfolio.certificates || []).map((item) => item.fileUrl),
-      ...(portfolio.gallery || []).map((item) => item.url),
+      ...(Array.isArray(portfolio.projects) ? portfolio.projects.map((item) => item.imageUrl) : []),
+      ...(Array.isArray(portfolio.certificates) ? portfolio.certificates.map((item) => item.fileUrl) : []),
+      ...(Array.isArray(portfolio.gallery) ? portfolio.gallery.map((item) => item.url) : []),
     ];
     if (referencedUrls.includes(assetUrl)) {
       return res.status(409).json({ success: false, message: 'This file is still in use by portfolio content.' });

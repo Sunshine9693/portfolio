@@ -1,7 +1,7 @@
 import React from 'react';
-import { Volume2, Sparkles, Bot } from 'lucide-react';
+import { Bot } from 'lucide-react';
 
-export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText, autoplayBlocked, playbackState }) => {
+export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText, speechError, playbackState }) => {
   const statusText = isSpeaking
     ? 'AURA Speaking'
     : isPaused
@@ -10,8 +10,8 @@ export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText, auto
         ? 'Introduction complete'
         : playbackState === 'stopped'
           ? 'Introduction stopped'
-          : autoplayBlocked
-            ? 'Tap to begin'
+          : speechError
+            ? 'Audio unavailable'
             : 'Ready to introduce';
 
   return (
@@ -59,13 +59,13 @@ export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText, auto
               <span className="text-slate-muted italic">
                 Introduction stopped. Press Play Introduction to listen again.
               </span>
-            ) : autoplayBlocked ? (
+            ) : speechError ? (
               <span>
-                Automatic audio didn't start. Tap <span className="text-violet font-semibold">Play Introduction</span> to hear Sana's background.
+                Audio narration could not start. Press <span className="text-violet font-semibold">Play Introduction</span> to try again, or read the full transcript below.
               </span>
             ) : (
               <span>
-                "Hi! Let me introduce you to <strong className="text-cyan font-semibold">Sana</strong>. Her introduction will begin automatically when your browser allows."
+                "Hi! I'm <strong className="text-cyan font-semibold">AURA</strong>, Sana's virtual guide. Press Play Introduction to hear her background."
               </span>
             )}
           </p>

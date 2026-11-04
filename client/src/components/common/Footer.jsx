@@ -1,6 +1,7 @@
-import React from 'react';
 import { ArrowUp, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const CURRENT_YEAR = new Date().getFullYear();
 
 export const Footer = () => {
   const scrollToTop = () => {
@@ -42,6 +43,7 @@ export const Footer = () => {
           </Link>
 
           <button
+            type="button"
             onClick={scrollToTop}
             className="btn-primary p-2.5 rounded-full shadow-glow-cyan transition-transform hover:-translate-y-1"
             title="Back to Top"
@@ -53,7 +55,7 @@ export const Footer = () => {
       </div>
 
       <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-midnight-border/40 flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono-tech text-slate-muted/70 gap-2">
-        <span>© {new Date().getFullYear()} Sana Fatma. All rights reserved.</span>
+        <span>© {CURRENT_YEAR} Sana Fatma. All rights reserved.</span>
         <span className="text-cyan/70">Verified Portfolio Architecture</span>
       </div>
     </footer>

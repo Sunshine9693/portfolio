@@ -1,4 +1,17 @@
-import { defaultPortfolioData } from '../data/defaultPortfolioData.js';
+import { env } from '../config/env.js';
+
+const LLM_TIMEOUT_MS = 15000;
+
+const fetchWithTimeout = async (url, options = {}) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+};
 
 // Strict grounding knowledge context
 const KNOWLEDGE_BASE = `
@@ -124,97 +137,123 @@ const generateGroundedFallbackResponse = (query) => {
 
 export const chatWithAssistant = async (req, res) => {
   try {
-    const { message, history } = req.body;
+    const { message } = req.body || {};
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return res.status(400).json({ success: false, message: 'Message cannot be empty.' });
     }
 
-    if (message.length > 500) {
+    const cleanMessage = message.trim();
+    if (cleanMessage.length > 500) {
       return res.status(400).json({ success: false, message: 'Message is too long. Please limit to 500 characters.' });
     }
 
-    const geminiKey = process.env.GEMINI_API_KEY;
-    const openaiKey = process.env.OPENAI_API_KEY;
+    const geminiKey = env.geminiApiKey;
+    const openaiKey = env.openaiApiKey;
+    let liveServiceFailed = false;
 
     // Check if an external LLM key is configured
     if (geminiKey) {
       try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: 'user',
-                parts: [{ text: `${KNOWLEDGE_BASE}\n\nVisitor Question: ${message.trim()}` }]
-              }
-            ],
-            generationConfig: {
-              temperature: 0.2,
-              maxOutputTokens: 500,
-            }
-          })
-        });
+        const model = env.geminiModel;
+        const response = await fetchWithTimeout(
+          `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey)}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: {
+                parts: [{ text: KNOWLEDGE_BASE }],
+              },
+              contents: [
+                {
+                  role: 'user',
+                  parts: [{ text: cleanMessage }],
+                },
+              ],
+              generationConfig: {
+                temperature: 0.2,
+                maxOutputTokens: 500,
+              },
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`Gemini API returned ${response.status}: ${errorBody.slice(0, 200)}`);
+        }
 
         const data = await response.json();
-        if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (reply) {
           return res.json({
             success: true,
-            reply: data.candidates[0].content.parts[0].text,
+            reply,
             isLiveLLM: true,
-            model: 'Gemini 1.5 Flash'
+            model: `Gemini (${model})`,
           });
         }
       } catch (llmErr) {
+        liveServiceFailed = true;
         console.warn('Gemini API call failed, falling back to local grounded knowledge:', llmErr.message);
       }
     }
 
     if (openaiKey) {
       try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${openaiKey}`
+            Authorization: `Bearer ${openaiKey}`,
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: env.openaiModel,
             messages: [
               { role: 'system', content: KNOWLEDGE_BASE },
-              { role: 'user', content: message.trim() }
+              { role: 'user', content: cleanMessage },
             ],
             temperature: 0.2,
-            max_tokens: 400
-          })
+            max_tokens: 400,
+          }),
         });
 
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`OpenAI API returned ${response.status}: ${errorBody.slice(0, 200)}`);
+        }
+
         const data = await response.json();
-        if (data.choices && data.choices[0]?.message?.content) {
+        const reply = data.choices?.[0]?.message?.content;
+        if (reply) {
           return res.json({
             success: true,
-            reply: data.choices[0].message.content,
+            reply,
             isLiveLLM: true,
-            model: 'GPT-4o-mini'
+            model: env.openaiModel,
           });
         }
       } catch (llmErr) {
+        liveServiceFailed = true;
         console.warn('OpenAI API call failed, falling back to local grounded knowledge:', llmErr.message);
       }
     }
 
     // Explicit fallback grounded in verified data when no API key is present
-    const fallback = generateGroundedFallbackResponse(message);
+    const fallback = generateGroundedFallbackResponse(cleanMessage);
+    const infoNotice = liveServiceFailed
+      ? 'The live AI service is temporarily unavailable. This reply comes from the built-in verified portfolio guide.'
+      : 'Grounded Assistant active. Configure GEMINI_API_KEY in server/.env for external LLM inference.';
+
     return res.json({
       success: true,
       reply: fallback.text,
       sectionLink: fallback.sectionLink,
       sectionName: fallback.sectionName,
       isLiveLLM: false,
-      infoNotice: 'Grounded Assistant active. Configure GEMINI_API_KEY in server/.env for external LLM inference.'
+      infoNotice,
     });
-
   } catch (error) {
     console.error('chatWithAssistant error:', error);
     return res.status(500).json({ success: false, message: 'Assistant temporary error. Please try again.' });
