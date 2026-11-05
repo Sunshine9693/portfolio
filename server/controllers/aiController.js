@@ -150,6 +150,7 @@ export const chatWithAssistant = async (req, res) => {
 
     const geminiKey = env.geminiApiKey;
     const openaiKey = env.openaiApiKey;
+    const openrouterKey = env.openrouterApiKey;
     let liveServiceFailed = false;
 
     // Check if an external LLM key is configured
@@ -240,11 +241,53 @@ export const chatWithAssistant = async (req, res) => {
       }
     }
 
+    if (openrouterKey) {
+      try {
+        const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${openrouterKey}`,
+            'HTTP-Referer': env.clientUrl.split(',')[0] || 'https://portfolio-ivory-tau-82.vercel.app',
+            'X-Title': 'Sana Fatma Portfolio',
+          },
+          body: JSON.stringify({
+            model: env.openrouterModel,
+            messages: [
+              { role: 'system', content: KNOWLEDGE_BASE },
+              { role: 'user', content: cleanMessage },
+            ],
+            temperature: 0.2,
+            max_tokens: 400,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`OpenRouter API returned ${response.status}: ${errorBody.slice(0, 200)}`);
+        }
+
+        const data = await response.json();
+        const reply = data.choices?.[0]?.message?.content;
+        if (reply) {
+          return res.json({
+            success: true,
+            reply,
+            isLiveLLM: true,
+            model: `OpenRouter (${env.openrouterModel})`,
+          });
+        }
+      } catch (llmErr) {
+        liveServiceFailed = true;
+        console.warn('OpenRouter API call failed, falling back to local grounded knowledge:', llmErr.message);
+      }
+    }
+
     // Explicit fallback grounded in verified data when no API key is present
     const fallback = generateGroundedFallbackResponse(cleanMessage);
     const infoNotice = liveServiceFailed
       ? 'The live AI service is temporarily unavailable. This reply comes from the built-in verified portfolio guide.'
-      : 'Grounded Assistant active. Configure GEMINI_API_KEY in server/.env for external LLM inference.';
+      : 'Grounded Assistant active. Configure OPENROUTER_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY for external LLM inference.';
 
     return res.json({
       success: true,

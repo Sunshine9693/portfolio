@@ -165,6 +165,8 @@ Open `http://localhost:5173/admin` and use the secure initial setup form with th
 | `ADMIN_SETUP_TOKEN` | Production | Allows one-time initial admin creation. |
 | `CLIENT_URL` | Production | Exact frontend origin allowed by CORS, without a trailing slash. |
 | `UPLOADS_DIR` | Production | Persistent directory for managed uploads. |
+| `OPENROUTER_API_KEY` | No | Enables live responses through OpenRouter. |
+| `OPENROUTER_MODEL` | No | OpenRouter model ID. Defaults to `openai/gpt-4o-mini`. |
 | `GEMINI_API_KEY` | No | Enables live Gemini responses. |
 | `GEMINI_MODEL` | No | Gemini model ID. Defaults to `gemini-3.8-flash`. |
 | `OPENAI_API_KEY` | No | Optional OpenAI fallback. |
@@ -180,14 +182,19 @@ Open `http://localhost:5173/admin` and use the secure initial setup form with th
 
 The assistant is grounded in Sana's verified portfolio information. If no AI key is configured, or the external provider is temporarily unavailable, the API returns a built-in verified response with an `infoNotice` instead of failing the chat.
 
-Configure a live provider with:
+Configure a live provider with any one of the following. Providers are tried in this order: Gemini, OpenAI, OpenRouter.
+
+```dotenv
+OPENROUTER_API_KEY=your_key_here
+OPENROUTER_MODEL=openai/gpt-4o-mini
+```
 
 ```dotenv
 GEMINI_API_KEY=your_key_here
 GEMINI_MODEL=gemini-3.8-flash
 ```
 
-Model availability changes over time. If Google retires the configured model, update `GEMINI_MODEL` to a model available to your API key.
+Model availability changes over time. If a provider retires the configured model, update the matching model variable to one available to your API key. OpenRouter model IDs are listed at <https://openrouter.ai/models>.
 
 ## 🖼️ Uploads and Persistent Storage
 
