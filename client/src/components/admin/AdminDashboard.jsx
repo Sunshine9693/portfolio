@@ -38,6 +38,8 @@ export const AdminDashboard = () => {
   const certificateFileInput = useRef(null);
   const photoFileInput = useRef(null);
   const [messages, setMessages] = useState([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [messagesLoadError, setMessagesLoadError] = useState(false);
 
   // Toast feedback
   const [toast, setToast] = useState(null);
@@ -90,6 +92,9 @@ export const AdminDashboard = () => {
   const fetchMessages = useCallback(async () => {
     if (!token) return;
 
+    setIsLoadingMessages(true);
+    setMessagesLoadError(false);
+
     try {
       const res = await api.get('/api/contact/messages', {
         headers: { Authorization: `Bearer ${token}` },
@@ -97,12 +102,16 @@ export const AdminDashboard = () => {
       if (res.data?.success) {
         setMessages(Array.isArray(res.data.messages) ? res.data.messages : []);
       } else {
+        setMessagesLoadError(true);
         showToast('error', res.data?.message || 'Could not load contact messages.');
       }
     } catch (error) {
       if (isApiCancel(error)) return;
+      setMessagesLoadError(true);
       console.error('Failed to fetch contact messages:', error);
       showToast('error', error.response?.data?.message || 'Could not load contact messages.');
+    } finally {
+      setIsLoadingMessages(false);
     }
   }, [token, showToast]);
 
@@ -1276,7 +1285,15 @@ export const AdminDashboard = () => {
               </button>
             </div>
 
-            {messages.length === 0 ? (
+            {isLoadingMessages && messages.length === 0 ? (
+              <div className="card-dev rounded-3xl p-12 text-center text-slate-muted font-mono-tech text-xs">
+                Loading contact inquiries...
+              </div>
+            ) : messagesLoadError && messages.length === 0 ? (
+              <div className="card-dev rounded-3xl p-12 text-center text-slate-muted font-mono-tech text-xs">
+                Could not load inquiries. Use Refresh Messages to try again.
+              </div>
+            ) : messages.length === 0 ? (
               <div className="card-dev rounded-3xl p-12 text-center text-slate-muted font-mono-tech text-xs">
                 No inquiries submitted yet. Form submissions will appear here in real-time.
               </div>

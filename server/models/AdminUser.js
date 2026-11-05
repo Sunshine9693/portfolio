@@ -23,7 +23,7 @@ const adminUserSchema = new mongoose.Schema({
     type: Date,
   }
 }, { timestamps: true });
-
+ 
 adminUserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(10);
