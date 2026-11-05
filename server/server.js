@@ -35,11 +35,26 @@ app.use(
 );
 
 // CORS Configuration
+// CLIENT_URL accepts a comma-separated list. Entries may use '*' as a wildcard,
+// which is useful for Vercel preview deployment URLs.
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  env.clientUrl
-].filter(Boolean);
+  ...env.clientUrl
+    .split(',')
+    .map((value) => value.trim().replace(/\/+$/, ''))
+    .filter(Boolean)
+];
+
+const matchesAllowedOrigin = (origin) =>
+  allowedOrigins.some((allowed) => {
+    if (!allowed.includes('*')) return allowed === origin;
+    const pattern = allowed
+      .split('*')
+      .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
+      .join('.*');
+    return new RegExp(`^${pattern}$`).test(origin);
+  });
 
 app.use(
   cors({
@@ -48,7 +63,7 @@ app.use(
       if (!origin) return callback(null, true);
 
       if (
-        allowedOrigins.includes(origin) ||
+        matchesAllowedOrigin(origin) ||
         (!env.isProduction && origin.startsWith('http://localhost:'))
       ) {
         return callback(null, true);
@@ -119,7 +134,14 @@ const startServer = async () => {
   });
 };
 
-startServer().catch((error) => {
-  console.error('[Portfolio Backend] Fatal startup error:', error);
-  process.exitCode = 1;
-});
+if (process.env.VERCEL) {
+  // Vercel invokes the exported Express app; it must not call app.listen().
+  await connectDB();
+} else {
+  startServer().catch((error) => {
+    console.error('[Portfolio Backend] Fatal startup error:', error);
+    process.exitCode = 1;
+  });
+}
+
+export default app;

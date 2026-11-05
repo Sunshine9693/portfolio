@@ -1,0 +1,35 @@
+# Render Blueprint for the portfolio backend.
+# Deploy from the Render Dashboard: New -> Blueprint -> select this repository.
+# Values marked "sync: false" are requested during the initial deploy.
+services:
+  - type: web
+    name: portfolio-api
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Comma-separated list; "*" matches Vercel preview deployment URLs.
+      - key: CLIENT_URL
+        value: https://portfolio-ivory-tau-82.vercel.app,https://portfolio-*.vercel.app
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_SETUP_TOKEN
+        sync: false
+
+    # Persistent uploads require a paid instance type (Free instances cannot
+    # attach disks). After upgrading, uncomment the block below and add
+    # UPLOADS_DIR=/var/data/uploads to envVars.
+    #
+    # disk:
+    #   name: portfolio-uploads
+    #   mountPath: /var/data
+    #   sizeGB: 1

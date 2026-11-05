@@ -207,15 +207,24 @@ The included `vercel.json` builds `client/` and serves `client/dist/`. On Vercel
 
 ### Backend
 
-Deploy `server/` to a Node-compatible host. Configure:
+#### Render (Blueprint)
 
-- `NODE_ENV=production`
-- `MONGODB_URI`
-- `JWT_SECRET`
-- `ADMIN_SETUP_TOKEN`
-- `CLIENT_URL` (the exact deployed frontend origin)
-- `UPLOADS_DIR` (a persistent volume)
-- Optional AI provider variables
+The repository includes `render.yaml`, which deploys `server/` as a Render web service.
+
+1. Push the repository to GitHub.
+2. In the [Render Dashboard](https://dashboard.render.com), choose **New → Blueprint** and select this repository.
+3. Enter the secret values when prompted:
+   - `MONGODB_URI`
+   - `JWT_SECRET`
+   - `ADMIN_SETUP_TOKEN`
+4. Deploy. The API is available at `https://<service-name>.onrender.com`; the health check is `/api/health`.
+5. Set `VITE_API_BASE_URL` on the Vercel frontend to the Render URL and redeploy it.
+
+The Blueprint uses the Free plan, so the API spins down after 15 minutes without traffic and takes about a minute to wake up. Free instances also have an ephemeral filesystem: set `UPLOADS_DIR` to a mounted persistent disk (paid plans only) if admin uploads must survive restarts.
+
+#### Vercel Functions
+
+`server/vercel.json` also allows deploying `server/` as a Vercel project. Uploads there are written to `/tmp/uploads` and do not persist.
 
 Then seed the production database once with `npm --prefix server run seed` (or `-- --force` when intentionally replacing content).
 

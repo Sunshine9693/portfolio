@@ -23,7 +23,7 @@ export const env = {
   geminiModel: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
   openaiApiKey: process.env.OPENAI_API_KEY || '',
   openaiModel: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-  uploadsDir: process.env.UPLOADS_DIR || '',
+  uploadsDir: process.env.UPLOADS_DIR || (process.env.VERCEL ? '/tmp/uploads' : ''),
 };
 
 if (!env.jwtSecret) {
