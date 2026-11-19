@@ -83,10 +83,8 @@ const legacyCopy = {
   "Audio visualizer canvas frequencies and lyric synchronization": "Audio visualiser and synced lyrics",
   "HTML5 Audio API event listeners (timeupdate, loadedmetadata, ended)": "HTML audio events track playback and song changes.",
   "CSS transition timeline with dynamic width calculations": "JavaScript updates the seek bar and playback controls.",
-  "AURA is Sana Fatmaâ€™s flagship AI exploration: a full-stack, web-based assistant built to simplify information retrieval, voice communication, notes, reminders, and daily task management into an integrated conversational experience.": "I built AURA to handle spoken requests, save notes and reminders, and answer questions. It connects a React interface to an Express backend, language model APIs, and MongoDB.",
   "Voice assistant with React and Node.js": "Voice assistant with React and Node.js",
   "A personalized AI voice assistant engineered with React.js, Node.js, Express.js, MongoDB, and LLM APIs for conversational task automation.": "A voice assistant for spoken questions, notes, reminders, and weather updates.",
-  "AURA is Sana Fatmaâ€™s flagship exploration into AI voice interfaces. Designed as a full-stack web application, it supports natural conversational prompting, speech-to-text processing, notes, reminders, weather queries, and persistent user preference storage in MongoDB.": "I built AURA to handle spoken requests, save notes and reminders, and answer questions. It connects a React interface to an Express backend, language model APIs, and MongoDB.",
   "Personalized natural language conversational interaction with AI": "Spoken questions and responses",
   "Voice-based task interaction and speech synthesis playback": "Notes, reminders, and weather updates",
   "Built-in modules for notes, reminders, weather updates, and information retrieval": "React frontend connected to Express APIs",
@@ -129,7 +127,8 @@ const legacyCopy = {
   "Took part in peer code reviews, improving code readability, exception handling, and documentation practices.": "Reviewed code with peers and improved error handling and documentation.",
   "Delivered live web development projects under mentorship, following a real-world development workflow.": "Built web projects with guidance from mentors.",
   "Designed and deployed mobile-first, responsive interfaces tailored for optimal touch-screen navigation.": "Built and deployed responsive pages for mobile screens.",
-  "Worked across the full project lifecycle from initial requirements gathering to final quality delivery.": "Helped with requirements, development, and testing."
+  "Worked across the full project lifecycle from initial requirements gathering to final quality delivery.": "Helped with requirements, development, and testing.",
+  "AURA is Sana Fatma’s flagship exploration into AI voice interfaces. Designed as a full-stack web application, it supports natural conversational prompting, speech-to-text processing, notes, reminders, weather queries, and persistent user preference storage in MongoDB.": "I built AURA to handle spoken requests, save notes and reminders, and answer questions. It connects a React interface to an Express backend, language model APIs, and MongoDB."
 };
 export function updatePortfolioCopy(value) {
   if (typeof value === 'string') return legacyCopy[value] ?? value;

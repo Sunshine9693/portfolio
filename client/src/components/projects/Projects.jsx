@@ -19,7 +19,7 @@ export const Projects = ({ projectsData }) => {
       category: 'Artificial Intelligence & Full-Stack',
       featured: true,
       description: "A voice assistant for spoken questions, notes, reminders, and weather updates.",
-      longDescription: 'AURA is Sana Fatma’s flagship exploration into AI voice interfaces. Designed as a full-stack web application, it supports natural conversational prompting, speech-to-text processing, notes, reminders, weather queries, and persistent user preference storage in MongoDB.',
+      longDescription: "I built AURA to handle spoken requests, save notes and reminders, and answer questions. It connects a React interface to an Express backend, language model APIs, and MongoDB.",
       technologies: ['React.js', 'Vite', 'Tailwind CSS', 'Node.js', 'Express.js', 'MongoDB', 'LLM API', 'Axios', 'Web Speech API'],
       features: [
         "Spoken questions and responses",
