@@ -18,6 +18,8 @@ export function usePortfolioReveal(isLoading) {
         if (!target.isConnected) { observer.unobserve(target); targets.delete(target); }
       });
       document.querySelectorAll(selector).forEach((target) => {
+        // Gallery previews should stay fixed instead of receiving card reveals.
+        if (target.closest('#gallery [role="dialog"]')) return;
         if (targets.has(target)) return;
         targets.add(target);
         const siblings = Array.from(target.parentElement.children);

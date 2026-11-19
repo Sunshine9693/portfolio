@@ -147,7 +147,7 @@ main .card-dev, main .card-ai-glow {
   transition: opacity 600ms ease var(--reveal-delay, 0ms), translate 600ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms), transform 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
 }
 main .reveal-pending { opacity: 0; translate: 0 20px; }
-#hero figure img, #gallery img { transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
+#hero figure img { transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
 header nav a[href^="#"]:not([aria-label]) { position: relative; }
 header nav a[href^="#"]:not([aria-label])::after {
   content: '';
@@ -170,13 +170,36 @@ main input:focus, main textarea:focus { box-shadow: 0 0 0 3px rgb(36 62 99 / 10%
     box-shadow: 0 14px 32px rgb(23 43 67 / 10%);
   }
   .btn-primary:not(:disabled):hover, .btn-secondary:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgb(23 43 67 / 12%); }
-  #hero figure:hover img, #gallery button:hover img, #gallery .card-dev:hover img { transform: scale(1.035); }
+  #hero figure:hover img { transform: scale(1.035); }
   header nav a[href^="#"]:not([aria-label]):hover::after { transform: scaleX(1); }
   main .btn-primary svg, main .btn-secondary svg { transition: transform 200ms ease; }
   main .btn-primary:hover svg, main .btn-secondary:hover svg { transform: translateY(-1px); }
 }
 .btn-primary:not(:disabled):active, .btn-secondary:not(:disabled):active { transform: translateY(0) scale(0.98); }
 header nav a[href^="#"]:focus-visible::after { transform: scaleX(1); }
+
+/* Gallery motion stays inside reserved image frames, never on the lightbox. */
+#gallery .gallery-image-frame { isolation: isolate; contain: paint; }
+#gallery .gallery-image {
+  display: block;
+  opacity: 0;
+  backface-visibility: hidden;
+  transition: opacity 220ms ease, transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+#gallery .gallery-image[data-ready="true"] { opacity: 1; }
+#gallery .gallery-media-card:hover { transform: none; }
+#gallery .gallery-preview .card-dev {
+  transform: none;
+  translate: none;
+  opacity: 1;
+  transition: none;
+}
+#gallery .gallery-preview .gallery-image { transform: none; transition: opacity 220ms ease; }
+#gallery.gallery-preview-open .gallery-media-card,
+#gallery.gallery-preview-open .gallery-media-card .gallery-image { transform: none; }
+@media (hover: hover) and (pointer: fine) {
+  #gallery:not(.gallery-preview-open) .gallery-media-card:hover .gallery-image { transform: scale(1.025); }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   main .reveal-pending { opacity: 1; translate: none; }

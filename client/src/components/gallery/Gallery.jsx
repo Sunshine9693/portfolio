@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Sparkles,
   FileText,
@@ -12,12 +12,16 @@ import {
 import { resolveAssetUrl } from '../../services/api';
 import { useDialogBehavior } from '../../hooks/useDialogBehavior';
 
-const SafeImage = ({ src, alt, className = '', fallbackClassName = '' }) => {
-  const [failed, setFailed] = useState(false);
+const SafeImage = ({ src, alt, className = '', fallbackClassName = '', preview = false }) => {
+  const [imageState, setImageState] = useState({ src, failed: false, ready: false });
+  const failed = imageState.src === src && imageState.failed;
+  const ready = imageState.src === src && imageState.ready;
 
-  useEffect(() => {
-    setFailed(false);
-  }, [src]);
+  const handleLoad = async (event) => {
+    const image = event.currentTarget;
+    try { await image.decode(); } catch { /* Some browsers already decoded the image. */ }
+    if (image.naturalWidth > 0) setImageState({ src, failed: false, ready: true });
+  };
 
   if (!src || failed) {
     return (
@@ -36,8 +40,12 @@ const SafeImage = ({ src, alt, className = '', fallbackClassName = '' }) => {
     <img
       src={src}
       alt={alt}
-      onError={() => setFailed(true)}
-      className={className}
+      loading={preview ? 'eager' : 'lazy'}
+      decoding="async"
+      onLoad={handleLoad}
+      onError={() => setImageState({ src, failed: true, ready: false })}
+      data-ready={ready}
+      className={`gallery-image ${className}`}
     />
   );
 };
@@ -120,7 +128,7 @@ export const Gallery = ({ certificatesData, galleryData }) => {
   };
 
   return (
-    <section id="gallery" className="relative py-24 px-4 sm:px-6 lg:px-8 border-t border-midnight-border bg-midnight-surface/30">
+    <section id="gallery" className={`relative py-24 px-4 sm:px-6 lg:px-8 border-t border-midnight-border bg-midnight-surface/30${activePreview ? ' gallery-preview-open' : ''}`}>
       <div className="max-w-7xl mx-auto text-left">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
@@ -238,13 +246,13 @@ export const Gallery = ({ certificatesData, galleryData }) => {
                     key={item.id || index}
                     type="button"
                     onClick={() => openGalleryPreview(item)}
-                    className="card-dev rounded-2xl overflow-hidden cursor-pointer group text-left"
+                    className="gallery-media-card card-dev rounded-2xl overflow-hidden cursor-pointer group text-left"
                   >
-                    <div className="relative aspect-[4/3] bg-midnight-elevated overflow-hidden">
+                    <div className="gallery-image-frame relative aspect-[4/3] bg-midnight-elevated overflow-hidden">
                       <SafeImage
                         src={resolveAssetUrl(item.url)}
                         alt={item.title || 'Portfolio media'}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover"
                         fallbackClassName="w-full h-full"
                       />
                       <div className="absolute inset-0 bg-midnight/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -272,7 +280,7 @@ export const Gallery = ({ certificatesData, galleryData }) => {
       {/* Lightbox / PDF Document Previewer Modal */}
       {activePreview && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-midnight/90 backdrop-blur-md animate-fade-in"
+          className="gallery-preview fixed inset-0 z-50 flex items-center justify-center p-4 bg-midnight/90 backdrop-blur-md animate-fade-in"
           onClick={() => setActivePreview(null)}
           role="dialog"
           aria-modal="true"
@@ -315,7 +323,7 @@ export const Gallery = ({ certificatesData, galleryData }) => {
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-hidden rounded-xl bg-midnight flex items-center justify-center min-h-[400px]">
+            <div className="gallery-preview-media flex-1 overflow-hidden rounded-xl bg-midnight flex items-center justify-center min-h-0 sm:min-h-[400px]">
               {activePreview.type === 'pdf' ? (
                 <iframe
                   src={activePreview.url}
@@ -334,7 +342,8 @@ export const Gallery = ({ certificatesData, galleryData }) => {
                 <SafeImage
                   src={activePreview.url}
                   alt={activePreview.title}
-                  className="max-h-[70vh] object-contain rounded-xl"
+                  preview
+                  className="max-h-[70vh] max-w-full object-contain rounded-xl"
                   fallbackClassName="h-[50vh] w-full rounded-xl"
                 />
               )}
