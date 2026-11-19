@@ -28,7 +28,7 @@ export const Education = ({ educationData, achievementsData }) => {
       id: 'triple-internship',
       title: 'Three Professional Internships',
       metric: '3 Internships',
-      tag: 'Industry Experience',
+      tag: 'Web development and Java',
       description: 'Completed three competitive internships across web development and Java programming within a single academic year.'
     },
     {
@@ -62,14 +62,14 @@ export const Education = ({ educationData, achievementsData }) => {
         {/* Section Header */}
         <div className="space-y-3 max-w-2xl">
           <div className="flex items-center gap-2 text-cyan font-mono-tech text-xs uppercase tracking-widest font-bold">
-            <Sparkles className="w-3.5 h-3.5 text-violet" />
-            <span>Academic Qualifications</span>
+
+            <span>Education</span>
           </div>
           <h2 className="font-heading text-4xl sm:text-6xl text-slate-main tracking-tight uppercase leading-none">
-            EDUCATION & MILESTONES
+            Education & community
           </h2>
           <p className="font-sans text-sm sm:text-base text-slate-muted">
-            Verified academic performance at MANUU and active open-source / developer community engagement.
+            My degree, academic progress, and community involvement.
           </p>
         </div>
 
@@ -82,7 +82,7 @@ export const Education = ({ educationData, achievementsData }) => {
             <div className="lg:col-span-8 space-y-5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-midnight-elevated border border-cyan/30 text-xs font-mono-tech text-cyan">
                 <GraduationCap className="w-4 h-4 text-cyan" />
-                <span>Undergraduate Degree Program</span>
+                <span>Undergraduate degree</span>
               </div>
 
               <div>
@@ -140,7 +140,7 @@ export const Education = ({ educationData, achievementsData }) => {
           <div className="flex items-center gap-2">
             <Trophy className="w-4 h-4 text-cyan" />
             <span className="font-mono-tech text-xs text-slate-main uppercase tracking-widest font-bold">
-              VERIFIED ACHIEVEMENTS & CONTRIBUTIONS
+              Achievements & community
             </span>
           </div>
 
@@ -161,9 +161,6 @@ export const Education = ({ educationData, achievementsData }) => {
                     <span className="font-mono-tech text-[10px] text-cyan uppercase tracking-wider font-semibold">
                       {item.tag}
                     </span>
-                    <span className="font-mono-tech text-xs text-slate-muted font-bold">
-                      0{idx + 1}
-                    </span>
                   </div>
 
                   <div className="font-heading text-3xl text-slate-main tracking-wide">
@@ -181,7 +178,7 @@ export const Education = ({ educationData, achievementsData }) => {
 
                 <div className="pt-3 border-t border-midnight-border flex items-center gap-1.5 font-mono-tech text-[10px] text-emerald-accent">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Verified Resume Entry</span>
+                  <span>From my resume</span>
                 </div>
               </div>
             ))}

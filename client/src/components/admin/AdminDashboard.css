@@ -1,9 +1,9 @@
 .admin-dashboard :is(input, textarea).bg-midnight-elevated {
-  color: #e2e8f0;
+  color: #172b43;
 }
 
 .admin-dashboard :is(input, textarea).bg-midnight-elevated::placeholder {
-  color: #94a3b8;
+  color: #526174;
   opacity: 1;
 }
 
@@ -73,3 +73,7 @@
 ):autofill {
   -webkit-text-fill-color: #172033;
 }
+
+.admin-dashboard { font-size: 1rem; }
+.admin-dashboard .text-xs { font-size: 0.875rem; }
+.admin-dashboard .uppercase { text-transform: none; }

@@ -52,7 +52,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 15 * 1024 * 1024, // 15MB limit
+    fileSize: 4 * 1024 * 1024, // Within the Vercel request body limit.
   },
 });
 
@@ -80,13 +80,13 @@ const managedUpload = multer({
     cb(null, true);
   },
   limits: {
-    fileSize: 15 * 1024 * 1024,
+    fileSize: 4 * 1024 * 1024,
   },
 });
 
 const handleUploadError = (res, error) => {
   const status = error.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
-  return res.status(status).json({ success: false, message: error.message });
+  return res.status(status).json({ success: false, message: error.code === 'LIMIT_FILE_SIZE' ? 'Choose a file smaller than 4 MB.' : error.message });
 };
 
 export const uploadSingleFile = (req, res, next) => {

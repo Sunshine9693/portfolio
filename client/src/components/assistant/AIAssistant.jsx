@@ -307,11 +307,11 @@ export const AIAssistant = () => {
               </div>
               <div>
                 <h4 className="font-heading text-lg text-slate-main tracking-wide uppercase leading-tight">
-                  AURA PORTFOLIO GUIDE
+                  Portfolio assistant
                 </h4>
                 <div className="flex items-center gap-1.5 font-mono-tech text-[10px] text-cyan">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-accent animate-pulse" />
-                  <span>Grounded in verified portfolio data</span>
+                  <span>Ask about my projects and experience</span>
                 </div>
               </div>
             </div>
@@ -371,7 +371,7 @@ export const AIAssistant = () => {
                         className="mt-3 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-midnight-card border border-cyan/40 text-[11px] font-mono-tech text-cyan font-bold hover:bg-cyan hover:text-midnight transition-colors"
                       >
                         <span>{msg.sectionName || 'Navigate to Section'}</span>
-                        <ArrowUpRight className="w-3.5 h-3.5" />
+
                       </button>
                     )}
                   </div>

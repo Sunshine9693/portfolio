@@ -258,7 +258,7 @@ export const Navbar = ({ onTriggerNarration, isNarrating, resumeUrl }) => {
               className="btn-primary w-full py-3 rounded-xl text-center text-xs font-mono-tech font-bold uppercase tracking-wider flex items-center justify-center gap-2"
             >
               <FileDown className="w-4 h-4" />
-              Download Verified Resume
+              Download resume
             </a>
           </div>
         </div>

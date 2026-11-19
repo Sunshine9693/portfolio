@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       return {
         success: false,
-        message: err.response?.data?.message || 'Invalid username or password',
+        message: err.response?.data?.message || (err.response ? 'Sign-in is unavailable. Please try again shortly.' : 'Could not reach the sign-in service. Check your connection and try again.'),
       };
     }
   }, []);
@@ -90,6 +90,22 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const changePassword = useCallback(async (currentPassword, newPassword) => {
+    try {
+      const res = await api.post('/api/auth/change-password', { currentPassword, newPassword }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data?.success && res.data.token) {
+        localStorage.setItem(TOKEN_KEY, res.data.token);
+        setToken(res.data.token);
+        return { success: true, message: res.data.message };
+      }
+      return { success: false, message: res.data?.message || 'Could not change your password.' };
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Could not reach the sign-in service. Please try again.' };
+    }
+  }, [token]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -99,6 +115,7 @@ export const AuthProvider = ({ children }) => {
         isAuthLoading,
         login,
         setupAdmin,
+        changePassword,
         logout,
       }}
     >

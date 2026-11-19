@@ -5,6 +5,8 @@ import mongoose from 'mongoose';
 import { PortfolioData } from '../models/PortfolioData.js';
 import { defaultPortfolioData } from '../data/defaultPortfolioData.js';
 import { uploadsDir } from '../middleware/upload.js';
+import { persistAsset, deleteStoredAsset } from '../services/assetStorage.js';
+import { env } from '../config/env.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +36,7 @@ if (fs.existsSync(localCacheFile)) {
 }
 
 const persistLocalCache = (data) => {
+  if (env.isProduction) return;
   const temporaryFile = `${localCacheFile}.${process.pid}.tmp`;
 
   try {
@@ -140,6 +143,9 @@ export const updateSection = async (req, res) => {
       });
     }
 
+    if (env.isProduction) {
+      return res.status(503).json({ success: false, message: 'Portfolio storage is temporarily unavailable. Your changes have not been saved. Please try again.' });
+    }
     inMemoryData = { ...inMemoryData, [section]: data };
     persistLocalCache(inMemoryData);
 
@@ -187,7 +193,7 @@ const removeInvalidUpload = (filePath) => {
   }
 };
 
-export const uploadAsset = (req, res) => {
+export const uploadAsset = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file was uploaded.' });
@@ -201,6 +207,7 @@ export const uploadAsset = (req, res) => {
       });
     }
 
+    await persistAsset(req.file);
     const fileUrl = `/uploads/${req.file.filename}`;
     return res.status(201).json({
       success: true,
@@ -218,7 +225,7 @@ export const uploadAsset = (req, res) => {
   }
 };
 
-export const uploadManagedAsset = (req, res) => {
+export const uploadManagedAsset = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Choose a file to upload.' });
@@ -232,6 +239,7 @@ export const uploadManagedAsset = (req, res) => {
       });
     }
 
+    await persistAsset(req.file);
     return res.status(201).json({
       success: true,
       message: 'File uploaded successfully.',
@@ -278,11 +286,12 @@ export const deleteUploadedAsset = async (req, res) => {
       return res.status(409).json({ success: false, message: 'This file is still in use by portfolio content.' });
     }
 
-    if (!fs.existsSync(assetPath)) {
+    const removedFromDatabase = await deleteStoredAsset(filename);
+    if (!removedFromDatabase && !fs.existsSync(assetPath)) {
       return res.status(404).json({ success: false, message: 'Uploaded file was not found.' });
     }
 
-    fs.unlinkSync(assetPath);
+    if (fs.existsSync(assetPath)) fs.unlinkSync(assetPath);
     return res.json({ success: true, message: 'Uploaded file deleted.' });
   } catch (error) {
     console.error('deleteUploadedAsset error:', error);

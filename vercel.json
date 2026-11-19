@@ -3,6 +3,8 @@
   "buildCommand": "npm --prefix client run build",
   "outputDirectory": "client/dist",
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://portfolio-backend-v8mm.onrender.com/api/:path*" },
+    { "source": "/uploads/:path*", "destination": "https://portfolio-backend-v8mm.onrender.com/uploads/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

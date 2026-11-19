@@ -13,7 +13,7 @@ export const Projects = ({ projectsData }) => {
     {
       id: 'aura-voice-assistant',
       title: 'AURA — Personalized AI Voice Assistant',
-      subtitle: 'Voice-Driven Full-Stack Productivity Assistant',
+      subtitle: 'Voice assistant with React and Node.js',
       type: 'Personal Project',
       status: 'Ongoing',
       category: 'Artificial Intelligence & Full-Stack',
@@ -47,7 +47,7 @@ export const Projects = ({ projectsData }) => {
     {
       id: 'snapshoes-ecommerce',
       title: 'SnapShoes — Full-Stack E-Commerce Web App',
-      subtitle: 'Modern Footwear Catalog & Cart Experience',
+      subtitle: 'Footwear shopping application',
       type: 'Personal Project',
       status: 'Ongoing',
       category: 'Frontend & E-Commerce',
@@ -77,7 +77,7 @@ export const Projects = ({ projectsData }) => {
     {
       id: 'hostel-allocation-system',
       title: 'Automated Hostel Allocation System',
-      subtitle: 'Fairness-Driven Academic Group Solution',
+      subtitle: 'Academic group project',
       type: 'College Group Project',
       status: 'Completed',
       category: 'Database & Systems',
@@ -197,13 +197,13 @@ export const Projects = ({ projectsData }) => {
           <div className="space-y-3 max-w-2xl">
             <div className="flex items-center gap-2 text-cyan font-mono-tech text-xs uppercase tracking-widest font-bold">
               <Sparkles className="w-3.5 h-3.5 text-violet" />
-              <span>Engineering Portfolio</span>
+              <span>Selected work</span>
             </div>
             <h2 className="font-heading text-4xl sm:text-6xl text-slate-main tracking-tight uppercase leading-none">
-              FEATURED PROJECTS
+              Projects
             </h2>
             <p className="font-sans text-sm sm:text-base text-slate-muted">
-              Documented projects spanning conversational AI systems, e-commerce, and algorithmic allocation.
+              A selection of my web development, AI, and academic projects.
             </p>
           </div>
 
@@ -260,7 +260,7 @@ export const Projects = ({ projectsData }) => {
               <div className="lg:col-span-7 space-y-5">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="px-3 py-1 rounded-full bg-cyan/15 border border-cyan/40 text-cyan text-xs font-mono-tech font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Mic className="w-3.5 h-3.5 text-violet" /> Flagship AI Project
+                    <Mic className="w-3.5 h-3.5 text-violet" /> Featured project
                   </span>
                   <span className="px-3 py-1 rounded-full bg-midnight-elevated border border-midnight-border text-slate-muted text-xs font-mono-tech uppercase">
                     {auraProject.type}
@@ -287,7 +287,7 @@ export const Projects = ({ projectsData }) => {
                 {auraFeatures.length > 0 && (
                   <div className="space-y-2 pt-1">
                     <span className="font-mono-tech text-xs text-slate-main uppercase tracking-widest font-semibold flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-cyan" /> Verified Core Capabilities:
+                      <CheckCircle2 className="w-4 h-4 text-cyan" /> Features
                     </span>
                     <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-sans text-slate-muted">
                       {auraFeatures.slice(0, 4).map((feat, idx) => (
@@ -305,7 +305,7 @@ export const Projects = ({ projectsData }) => {
                   <div className="p-3 rounded-xl bg-midnight/60 border border-midnight-border flex items-start gap-2.5 text-xs font-sans text-slate-muted">
                     <Info className="w-4 h-4 text-violet shrink-0 mt-0.5" />
                     <span>
-                      <strong className="text-slate-main font-mono-tech">Future Scope (Planned):</strong>{' '}
+                      <strong className="text-slate-main font-mono-tech">Planned additions:</strong>{' '}
                       {auraPlannedFeatures.join(', ')}.
                     </span>
                   </div>
@@ -331,8 +331,8 @@ export const Projects = ({ projectsData }) => {
                     onClick={() => setSelectedProject(auraProject)}
                     className="btn-primary px-6 py-2.5 rounded-full text-xs font-mono-tech font-bold uppercase tracking-wider flex items-center gap-2 shadow-glow-cyan"
                   >
-                    <span>Inspect Case Study</span>
-                    <ArrowUpRight className="w-4 h-4" />
+                    <span>View project</span>
+
                   </button>
 
                   {auraProject.githubUrl && (
@@ -443,7 +443,7 @@ export const Projects = ({ projectsData }) => {
                 {/* Features Snippet */}
                 <div className="space-y-1.5 mb-6">
                   <span className="font-mono-tech text-[11px] text-slate-main uppercase tracking-wider font-semibold">
-                    Core Capabilities:
+                    Features
                   </span>
                   <ul className="space-y-1 text-xs font-sans text-slate-muted">
                     {(project.features || []).slice(0, 3).map((feat, fIdx) => (
@@ -475,8 +475,8 @@ export const Projects = ({ projectsData }) => {
                     onClick={() => setSelectedProject(project)}
                     className="text-xs font-mono-tech text-slate-main group-hover:text-cyan uppercase font-bold tracking-wider flex items-center gap-1.5 transition-colors"
                   >
-                    <span>View Case Details</span>
-                    <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    <span>View project</span>
+
                   </button>
 
                   {project.githubUrl && (

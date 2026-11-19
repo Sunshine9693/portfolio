@@ -1,309 +1,125 @@
-import { useEffect, useMemo, useState } from 'react';
-import {
-  ArrowUpRight,
-  FileDown,
-  Sparkles,
-  GraduationCap,
-  Briefcase,
-  Code,
-  Terminal,
-} from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+import { FileDown } from 'lucide-react';
+
 import { resolveAssetUrl } from '../../services/api';
 
-const DEFAULT_ROLES = [
-  'Computer Science Student',
-  'Web Developer',
-  'AI Enthusiast',
-  'Full-Stack Developer',
-];
 
-const DEFAULT_BADGES = ['B.Tech CSE • MANUU', 'CGPA: 8.72', 'Expected 2027'];
 
 const DEFAULT_STATS = [
-  { label: 'Academic CGPA', value: '8.72', sublabel: 'Consistent >8.5' },
-  { label: 'Internships', value: '03', sublabel: 'Industry Experience' },
-  { label: 'Documented Projects', value: '05', sublabel: 'AI & Web Solutions' },
-  { label: 'Expected Year', value: '2027', sublabel: 'B.Tech CSE MANUU' },
-];
 
-const BADGE_STYLES = [
-  { icon: GraduationCap, wrapper: 'border-cyan/30', text: 'text-cyan' },
-  { icon: Briefcase, wrapper: 'border-violet/30', text: 'text-violet' },
-  { icon: Sparkles, wrapper: 'border-indigo/30', text: 'text-indigo-light' },
-  { icon: Code, wrapper: 'border-emerald-500/30', text: 'text-emerald-accent' },
+  { label: 'CGPA', value: '8.72', sublabel: 'B.Tech Computer Science' },
+
+  { label: 'Internships', value: '3', sublabel: 'Web development and Java' },
+
+  { label: 'Projects', value: '5', sublabel: 'Web applications and AI' },
+
+  { label: 'Graduation', value: '2027', sublabel: 'MANUU, Hyderabad' },
+
 ];
 
 const safeText = (value, fallback) =>
+
   typeof value === 'string' && value.trim() ? value.trim() : fallback;
 
+
+
 export const Hero = ({ heroData, educationData }) => {
-  const [currentRoleIndex, setCurrentRoleIndex] = useState(0);
+
   const [imgError, setImgError] = useState(false);
 
-  const roles = useMemo(() => {
-    const configuredRoles = Array.isArray(heroData?.roles)
-      ? heroData.roles.filter((role) => typeof role === 'string' && role.trim())
-      : [];
-    return configuredRoles.length > 0 ? configuredRoles : DEFAULT_ROLES;
-  }, [heroData?.roles]);
-
-  const badges = useMemo(() => {
-    const configuredBadges = Array.isArray(heroData?.badges)
-      ? heroData.badges.filter((badge) => typeof badge === 'string' && badge.trim())
-      : [];
-    return configuredBadges.length > 0 ? configuredBadges : DEFAULT_BADGES;
-  }, [heroData?.badges]);
-
-  const stats = useMemo(() => {
-    const configuredStats = Array.isArray(heroData?.stats)
-      ? heroData.stats.filter((stat) => stat && typeof stat === 'object')
-      : [];
-    return configuredStats.length > 0 ? configuredStats : DEFAULT_STATS;
-  }, [heroData?.stats]);
-
-  const rolesKey = roles.join('\u0000');
   const name = safeText(heroData?.name, 'Sana Fatma');
-  const headline = safeText(
-    heroData?.headline,
-    'Building thoughtful software and exploring intelligent experiences.'
-  );
-  const supportingCopy = safeText(
-    heroData?.supportingCopy,
-    "I'm Sana Fatma, a final-year Computer Science and Engineering student passionate about web development, software engineering, and AI-powered applications."
-  );
+
+  const headline = safeText(heroData?.headline, 'I build web applications and work with AI.');
+
+  const supportingCopy = safeText(heroData?.supportingCopy,
+
+    "I'm a Computer Science student at MANUU, graduating in 2027. My work includes React applications, backend services, and a voice assistant built with language model APIs.");
+
   const portraitSrc = resolveAssetUrl(heroData?.portraitUrl) || '/images/sana_portrait.jpg';
+
   const resumeUrl = resolveAssetUrl(heroData?.resumeUrl) || '/Sana_Fatma_Resume.pdf';
 
-  const headlineWords = headline.split(/\s+/).filter(Boolean);
-  const splitIndex = Math.max(1, Math.ceil(headlineWords.length / 2));
-  const headlineStart = headlineWords.slice(0, splitIndex).join(' ');
-  const headlineEnd = headlineWords.slice(splitIndex).join(' ');
+  const stats = Array.isArray(heroData?.stats) && heroData.stats.length
 
-  const cgpa =
-    stats.find((stat) => String(stat.label || '').toLowerCase().includes('cgpa'))?.value ||
-    educationData?.cgpa ||
-    '8.72';
-  const expectedYear =
-    stats.find((stat) => String(stat.label || '').toLowerCase().includes('year'))?.value ||
-    educationData?.expectedGraduation ||
-    '2027';
-  const university = safeText(
-    educationData?.university,
-    'Maulana Azad National Urdu University (MANUU)'
-  );
+    ? heroData.stats.filter((stat) => stat && typeof stat === 'object') : DEFAULT_STATS;
 
-  useEffect(() => {
-    setCurrentRoleIndex(0);
-    if (roles.length < 2) return undefined;
+  const university = safeText(educationData?.university, 'Maulana Azad National Urdu University');
 
-    const interval = window.setInterval(() => {
-      setCurrentRoleIndex((previous) => (previous + 1) % roles.length);
-    }, 2800);
+  useEffect(() => { setImgError(false); }, [portraitSrc]);
 
-    return () => window.clearInterval(interval);
-  }, [roles.length, rolesKey]);
 
-  useEffect(() => {
-    setImgError(false);
-  }, [portraitSrc]);
-
-  const scrollToSection = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const currentRole = roles[currentRoleIndex % roles.length];
 
   return (
-    <section
-      id="hero"
-      className="relative min-h-[92vh] pt-32 pb-16 px-4 sm:px-6 lg:px-8 flex flex-col justify-center overflow-hidden ambient-glow-hero"
-    >
-      {/* Background Decorative Gradient Elements */}
-      <div className="absolute top-1/4 -right-20 w-96 h-96 bg-cyan/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/3 -left-20 w-96 h-96 bg-violet/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto w-full">
-        {/* Top Badges */}
-        <div className="flex flex-wrap items-center gap-2.5 mb-6 text-left">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-midnight-card border border-midnight-border text-xs font-mono-tech text-slate-muted shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-accent animate-pulse" />
-            <span>Available for opportunities</span>
-          </div>
+    <section id="hero" className="relative pt-36 sm:pt-44 pb-16 px-4 sm:px-6 lg:px-8">
 
-          {badges.map((badge, index) => {
-            const style = BADGE_STYLES[index % BADGE_STYLES.length];
-            const BadgeIcon = style.icon;
-            return (
-              <div
-                key={`${badge}-${index}`}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-midnight-card border ${style.wrapper} text-xs font-mono-tech ${style.text}`}
-              >
-                <BadgeIcon className="w-3.5 h-3.5" />
-                <span>{badge}</span>
-              </div>
-            );
-          })}
-        </div>
+      <div className="max-w-7xl mx-auto">
 
-        {/* Main 2-Column Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14 items-center text-left">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center">
+
           <div className="lg:col-span-7 space-y-6">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-cyan font-mono-tech text-xs uppercase tracking-widest font-bold">
-                <Terminal className="w-3.5 h-3.5" />
-                <span>Software & AI Developer</span>
-              </div>
-              <h2 className="text-[clamp(2.5rem,4.5vw,4rem)] leading-[1.1] font-mono-tech text-slate-muted font-normal">
-                {name}
-              </h2>
-            </div>
 
-            <h1 className="font-heading text-[clamp(2rem,3.8vw+0.5rem,3.25rem)] text-slate-main tracking-[-0.04em] uppercase leading-[1.02] drop-shadow-sm">
-              {headlineStart}
-              {headlineEnd && (
-                <>
-                  {' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan via-indigo to-violet">
-                    {headlineEnd}
-                  </span>
-                </>
-              )}
-            </h1>
+            <p className="text-sm font-medium text-cyan">Computer Science student · Web development & AI</p>
 
-            <div className="flex items-center gap-3 py-1 font-mono-tech">
-              <span className="text-xs text-slate-muted uppercase tracking-widest">
-                Role:
-              </span>
-              <div className="relative h-7 overflow-hidden inline-block min-w-[240px]">
-                <div
-                  key={`${currentRoleIndex}-${currentRole}`}
-                  className="text-base sm:text-lg text-cyan font-bold tracking-wide animate-fade-in"
-                >
-                  › {currentRole}
-                </div>
-              </div>
-            </div>
+            <h1 className="font-heading text-[clamp(3rem,6vw,5rem)] leading-[1.08] text-slate-main">{name}</h1>
 
-            <p className="text-base sm:text-lg text-slate-muted leading-relaxed max-w-2xl font-sans font-light">
-              {supportingCopy}
-            </p>
+            <h2 className="text-2xl sm:text-3xl font-medium leading-snug tracking-tight text-slate-main max-w-xl">{headline}</h2>
 
-            <div className="flex flex-wrap items-center gap-4 pt-4">
-              <button
-                onClick={() => scrollToSection('projects')}
-                className="btn-primary px-7 py-3.5 rounded-full text-xs sm:text-sm font-mono-tech font-bold uppercase tracking-wider flex items-center gap-2 group shadow-glow-cyan"
-              >
-                <span>Explore Projects</span>
-                <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </button>
+            <p className="text-base sm:text-lg text-slate-muted leading-relaxed max-w-xl">{supportingCopy}</p>
 
-              <a
-                href={resumeUrl}
-                download="Sana_Fatma_Resume.pdf"
-                className="btn-secondary px-6 py-3.5 rounded-full text-xs sm:text-sm font-mono-tech font-medium uppercase tracking-wider flex items-center gap-2 group hover:text-cyan"
-              >
-                <FileDown className="w-4 h-4 text-cyan transition-transform group-hover:translate-y-0.5" />
-                <span>Download Resume</span>
+            <div className="flex flex-wrap gap-3 pt-3">
+
+              <a href="#projects" className="btn-primary px-6 py-3 text-sm inline-flex items-center">View projects</a>
+
+              <a href={resumeUrl} download="Sana_Fatma_Resume.pdf" className="btn-secondary px-6 py-3 text-sm inline-flex items-center gap-2">
+
+                <FileDown className="w-4 h-4" /> Download resume
+
               </a>
 
-              <button
-                onClick={() => scrollToSection('contact')}
-                className="btn-secondary px-6 py-3.5 rounded-full text-xs sm:text-sm font-mono-tech font-medium uppercase tracking-wider flex items-center gap-2 hover:border-cyan/60 hover:text-cyan"
-              >
-                <span>Contact Me</span>
-              </button>
+              <a href="#contact" className="px-3 py-3 text-sm font-medium text-cyan underline underline-offset-4">Get in touch</a>
+
             </div>
+
+            <p className="text-sm text-slate-muted pt-2">Open to internships and graduate software roles.</p>
+
           </div>
 
-          {/* Right Column (5 cols): Portrait with Refined Developer Card */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end">
-            <div className="relative w-full max-w-md">
-              {/* Soft Blue/Violet Ambient Glow */}
-              <div className="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-cyan/30 via-indigo/25 to-violet/30 blur-xl opacity-60" />
+          <figure className="lg:col-span-5 w-full max-w-sm mx-auto lg:ml-auto lg:mr-0">
 
-              {/* Main Refined Portrait Card */}
-              <div className="relative card-dev rounded-3xl p-4 sm:p-5 shadow-card-dev overflow-hidden group border-midnight-border">
-                {/* Code-inspired Card Header */}
-                <div className="flex items-center justify-between pb-3 px-1 border-b border-midnight-border mb-3 text-xs font-mono-tech text-slate-muted">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-rose-500/80" />
-                    <span className="w-3 h-3 rounded-full bg-amber-500/80" />
-                    <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                  </div>
-                  <span className="text-[11px] text-slate-muted font-mono-tech">
-                    sana_fatma.profile.ts
-                  </span>
-                </div>
+            <div className="aspect-[4/5] overflow-hidden rounded-xl border border-midnight-border bg-midnight-elevated">
 
-                {/* Portrait Photo Container */}
-                <div className="relative rounded-2xl overflow-hidden aspect-[4/5] bg-midnight-elevated border border-midnight-border group-hover:border-cyan/40 transition-colors">
-                  {!imgError ? (
-                    <img
-                      src={portraitSrc}
-                      alt={`${name} — Software Engineer & AI Developer`}
-                      onError={() => setImgError(true)}
-                      className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-cyan to-indigo flex items-center justify-center font-heading text-3xl text-midnight font-bold mb-3 shadow-glow-cyan">
-                        SF
-                      </div>
-                      <h4 className="font-heading text-xl text-slate-main">{name.toUpperCase()}</h4>
-                      <p className="font-mono-tech text-xs text-slate-muted">B.Tech CSE • MANUU</p>
-                    </div>
-                  )}
+              {!imgError ? <img src={portraitSrc} alt={name} onError={() => setImgError(true)} className="w-full h-full object-cover object-center" />
 
-                  {/* Gradient Overlay at Bottom */}
-                  <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-midnight-card via-midnight-card/80 to-transparent pointer-events-none" />
+                : <div className="h-full flex items-center justify-center text-6xl font-heading text-cyan">SF</div>}
 
-                  {/* Bottom Info Floating Ribbon */}
-                  <div className="absolute bottom-3 left-3 right-3 p-3 rounded-xl bg-midnight-elevated/90 backdrop-blur-md border border-midnight-border flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="font-heading text-lg text-slate-main uppercase tracking-wide leading-none truncate">
-                        {name}
-                      </div>
-                      <div className="font-mono-tech text-[10px] text-cyan tracking-wider uppercase mt-1 truncate">
-                        {university}
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-mono-tech text-xs text-emerald-accent font-bold">
-                        CGPA {cgpa}
-                      </div>
-                      <div className="font-mono-tech text-[9px] text-slate-muted uppercase">
-                        Class of {expectedYear}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Code Snippet Under Portrait */}
-                <div className="mt-3 p-2.5 rounded-xl bg-midnight-surface/80 border border-midnight-border/60 font-mono-tech text-[11px] text-slate-muted">
-                  <span className="text-violet">const</span> <span className="text-cyan">developer</span> = &#123; role: <span className="text-emerald-accent">"{roles[0]}"</span>, grad: <span className="text-amber-300">{expectedYear}</span> &#125;;
-                </div>
-              </div>
             </div>
-          </div>
+
+            <figcaption className="mt-4 text-sm text-slate-muted leading-relaxed">B.Tech in Computer Science & Engineering<br />{university}</figcaption>
+
+          </figure>
+
         </div>
 
-        {/* Verified Stats Strip */}
-        <div className="mt-14 pt-8 border-t border-midnight-border/60 grid grid-cols-2 md:grid-cols-4 gap-6 text-left">
-          {stats.map((stat, index) => (
-            <div key={`${stat.label || 'stat'}-${index}`} className="space-y-1">
-              <div className="font-heading text-3xl sm:text-4xl text-slate-main tracking-tight">
-                {stat.value || '—'}
-              </div>
-              <div className="font-mono-tech text-xs text-cyan uppercase tracking-wider font-semibold">
-                {stat.label || 'Portfolio Metric'}
-              </div>
-              <div className="font-sans text-[11px] text-slate-muted">
-                {stat.sublabel || ''}
-              </div>
-            </div>
-          ))}
-        </div>
+        <dl className="mt-16 pt-8 border-t border-midnight-border grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8">
+
+          {stats.map((stat, index) => <div key={`${stat.label}-${index}`}>
+
+            <dd className="text-3xl font-heading text-slate-main mb-1">{stat.value || '—'}</dd>
+
+            <dt className="text-sm font-medium text-cyan">{stat.label}</dt>
+
+            <dd className="text-sm text-slate-muted mt-1">{stat.sublabel}</dd>
+
+          </div>)}
+
+        </dl>
+
       </div>
+
     </section>
+
   );
+
 };

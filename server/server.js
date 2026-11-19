@@ -11,6 +11,7 @@ import authRoutes from './routes/authRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import { configureUploadStorage, uploadsDir } from './middleware/upload.js';
+import { serveAsset } from './services/assetStorage.js';
 
 // Local DNS workaround for MongoDB Atlas SRV lookup.
 // Do not override DNS servers in production.
@@ -82,6 +83,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static file serving for uploads
+app.get('/uploads/:filename', serveAsset);
 app.use('/uploads', express.static(uploadsDir));
 
 // API Routes
@@ -96,6 +98,7 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     service: 'Sana Fatma Portfolio API',
     database: mongoose.connection.readyState === 1 ? 'connected' : 'fallback',
+    revision: process.env.RENDER_GIT_COMMIT || process.env.VERCEL_GIT_COMMIT_SHA || null,
     timestamp: new Date().toISOString()
   });
 });

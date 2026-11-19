@@ -14,10 +14,12 @@ import { Contact } from './components/contact/Contact';
 import { AIAssistant } from './components/assistant/AIAssistant';
 import { Footer } from './components/common/Footer';
 import { AdminDashboard } from './components/admin/AdminDashboard';
+import { usePortfolioReveal } from './hooks/usePortfolioReveal';
 
 // Public Portfolio View
 const PublicPortfolio = () => {
   const { data: portfolioData, isLoading } = usePortfolio();
+  usePortfolioReveal(isLoading);
   const [isNarratingGlobal, setIsNarratingGlobal] = useState(false);
   const [narrationCommand, setNarrationCommand] = useState(0);
 

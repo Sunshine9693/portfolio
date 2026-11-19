@@ -12,7 +12,7 @@ export const Skills = ({ skillsData }) => {
       id: 'frontend',
       category: 'Frontend Development',
       tag: 'UI & Interactivity',
-      description: 'Building responsive, accessible user interfaces with clean component architectures, modern CSS, and state management.',
+      description: 'Building responsive interfaces with React, JavaScript, and CSS.',
       items: [
         { name: 'HTML5', focus: 'Semantic markup & Web Accessibility (WCAG)' },
         { name: 'CSS3', focus: 'Modern layout, Flexbox, Grid & Keyframes' },
@@ -26,7 +26,7 @@ export const Skills = ({ skillsData }) => {
       id: 'data-ai',
       category: 'Data & Artificial Intelligence',
       tag: 'AI Exploration',
-      description: 'Leveraging LLM APIs, Generative AI architectures, and Python data tooling for practical analytics and smart automation.',
+      description: 'Working with language model APIs, Python, and data analysis tools.',
       items: [
         { name: 'LLM APIs', focus: 'Model prompt integration & API orchestration' },
         { name: 'Generative AI', focus: 'Conversational agent architecture & workflows' },
@@ -40,7 +40,7 @@ export const Skills = ({ skillsData }) => {
       id: 'backend',
       category: 'Backend & Databases',
       tag: 'Server & Storage',
-      description: 'Architecting RESTful services, integrating persistent NoSQL databases, and managing secure API endpoints.',
+      description: 'Building REST APIs with Node.js and Express, and storing data in MongoDB.',
       items: [
         { name: 'Node.js', focus: 'Event-driven JavaScript runtime & asynchronous I/O' },
         { name: 'Express.js', focus: 'REST API routing, middleware & error pipelines' },
@@ -52,7 +52,7 @@ export const Skills = ({ skillsData }) => {
       id: 'programming',
       category: 'Programming & Core Concepts',
       tag: 'Computer Science Core',
-      description: 'Strengthening algorithmic efficiency, modular object-oriented programming, and low-level memory concepts.',
+      description: 'Practising algorithms, object-oriented programming, and memory management.',
       items: [
         { name: 'Java', focus: 'OOP (Encapsulation, Inheritance, Polymorphism)' },
         { name: 'C', focus: 'Pointers, memory management & imperative basics' },
@@ -73,13 +73,13 @@ export const Skills = ({ skillsData }) => {
         <div className="max-w-3xl mb-16 space-y-3">
           <div className="flex items-center gap-2 text-cyan font-mono-tech text-xs uppercase tracking-widest font-bold">
             <Sparkles className="w-3.5 h-3.5 text-violet" />
-            <span>Developer Competencies</span>
+            <span>Skills</span>
           </div>
           <h2 className="font-heading text-4xl sm:text-6xl text-slate-main tracking-tight uppercase leading-none">
-            TECHNICAL SKILLS
+            Technical skills
           </h2>
           <p className="font-sans text-sm sm:text-base text-slate-muted">
-            Structured into four distinct technical domains, built across academic coursework, 5 projects, and 3 internships.
+            Tools and languages I’ve used in coursework, projects, and internships.
           </p>
         </div>
 
@@ -126,9 +126,6 @@ export const Skills = ({ skillsData }) => {
                       }`}
                     >
                       {card.tag || `CAT-0${index + 1}`}
-                    </span>
-                    <span className="font-mono-tech text-xs text-slate-muted font-semibold">
-                      0{index + 1}
                     </span>
                   </div>
 
@@ -177,8 +174,8 @@ export const Skills = ({ skillsData }) => {
 
                   {/* Action Link */}
                   <div className="pt-3.5 border-t border-midnight-border flex items-center justify-between font-mono-tech text-xs uppercase tracking-wider font-semibold text-slate-muted group-hover:text-cyan transition-colors">
-                    <span>Inspect Stack</span>
-                    <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    <span>View skills</span>
+
                   </div>
                 </div>
               </div>
@@ -226,7 +223,7 @@ export const Skills = ({ skillsData }) => {
 
             <div className="space-y-3">
               <span className="font-mono-tech text-xs text-slate-main uppercase tracking-widest font-semibold block">
-                VERIFIED SKILLS & COMPETENCIES
+                Skills & tools
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {(Array.isArray(selectedCategory.items) ? selectedCategory.items : []).map((skill, idx) => (

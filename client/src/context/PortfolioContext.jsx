@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import api, { isApiCancel } from '../services/api';
 
+import { updatePortfolioCopy } from './portfolioCopy';
+
 const PortfolioContext = createContext();
 
 export const PortfolioProvider = ({ children }) => {
@@ -18,7 +20,7 @@ export const PortfolioProvider = ({ children }) => {
       setIsLoading(true);
       const res = await api.get('/api/content', { signal: controller.signal });
       if (res.data?.success && res.data?.data) {
-        setData(res.data.data);
+        setData(updatePortfolioCopy(res.data.data));
       }
       setError(null);
     } catch (err) {

@@ -57,14 +57,14 @@ export const Experience = ({ internshipsData }) => {
         {/* Section Header */}
         <div className="space-y-3 mb-16">
           <div className="flex items-center gap-2 text-cyan font-mono-tech text-xs uppercase tracking-widest font-bold">
-            <Sparkles className="w-3.5 h-3.5 text-violet" />
-            <span>Practical Experience</span>
+
+            <span>Experience</span>
           </div>
           <h2 className="font-heading text-4xl sm:text-6xl text-slate-main tracking-tight uppercase leading-none">
-            INTERNSHIP TIMELINE
+            Internships
           </h2>
           <p className="font-sans text-sm sm:text-base text-slate-muted max-w-2xl">
-            Three verified internships completed in web development and Java programming within a single academic year.
+            Three internships in web development and Java programming.
           </p>
         </div>
 
@@ -116,7 +116,7 @@ export const Experience = ({ internshipsData }) => {
                 {/* Verified Points */}
                 <div className="space-y-2">
                   <span className="font-mono-tech text-xs text-slate-main uppercase tracking-widest font-semibold">
-                    Verified Responsibilities & Achievements:
+                    What I worked on
                   </span>
                   <ul className="space-y-2">
                     {(Array.isArray(internship.highlights) ? internship.highlights : []).map((point, pIdx) => (

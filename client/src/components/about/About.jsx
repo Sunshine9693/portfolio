@@ -16,28 +16,28 @@ import { FemaleAIAvatar } from './FemaleAIAvatar';
 import { speechCoordinator } from '../../services/speechCoordinator';
 
 const DEFAULT_BIO =
-  "I'm Sana Fatma, a Computer Science and Engineering undergraduate passionate about building responsive web applications and exploring AI-powered experiences. Through personal projects, academic work, and three internships, I've been developing practical skills across frontend development, backend integration, databases, and Java programming. I enjoy turning ideas into functional products while continuously improving my problem-solving skills.";
+  "I'm studying Computer Science and Engineering at MANUU in Hyderabad. Through coursework, personal projects, and three internships, I've worked with React, Node.js, MongoDB, and Java. I enjoy building interfaces, connecting them to backend services, and working through the problems that come up along the way.";
 
 const DEFAULT_NARRATION =
-  'Hi! Let me introduce you to Sana Fatma. She is a Computer Science and Engineering undergraduate at Maulana Azad National Urdu University, graduating in 2027. Sana is passionate about web development, software engineering, and artificial intelligence. She has worked on projects including AURA, her personalized AI assistant, and SnapShoes, an e-commerce application. Through internships and personal projects, she continues to develop her programming, frontend, backend, and problem-solving skills. Explore her projects to discover what she is building, and feel free to connect with her about relevant opportunities.';
+  "Hi, I'm Sana Fatma. I'm studying Computer Science and Engineering at MANUU and expect to graduate in 2027. I've completed three internships in web development and Java programming. My projects include AURA, a voice assistant, and SnapShoes, an e-commerce application. You can read about my work below or get in touch to discuss an opportunity.";
 
 const DEFAULT_HIGHLIGHTS = [
   {
     title: 'Full-Stack Foundations',
     description:
-      'Hands-on experience developing modular interfaces with React and connecting RESTful Express services with MongoDB.',
+      'I build React interfaces and connect them to Express APIs and MongoDB.',
     icon: 'Layers',
   },
   {
     title: 'AI & Conversational UX',
     description:
-      'Building voice-first AI assistants and LLM integrations grounded in practical task automation.',
+      'I use language model APIs and browser speech tools in voice assistant projects.',
     icon: 'Brain',
   },
   {
     title: 'Core Problem Solving',
     description:
-      'Strong foundation in Data Structures and Algorithms with C, C++, and object-oriented Java development.',
+      'I practise data structures and algorithms in C, C++, and Java.',
     icon: 'Code',
   },
 ];
@@ -64,7 +64,7 @@ export const About = ({ aboutData, narrationCommand, setIsNarratingGlobal }) => 
   const bio = safeText(aboutData?.bio, DEFAULT_BIO);
   const subtitle = safeText(
     aboutData?.subtitle,
-    'Bridging Frontend Craftsmanship with AI Innovation'
+    'My background and what I’m working on'
   );
   const title = safeText(aboutData?.title, 'ABOUT ME');
 
@@ -234,11 +234,11 @@ export const About = ({ aboutData, narrationCommand, setIsNarratingGlobal }) => 
         {/* Section Header */}
         <div className="max-w-3xl mb-14 space-y-3">
           <div className="flex items-center gap-2 text-cyan font-mono-tech text-xs uppercase tracking-widest font-bold">
-            <Sparkles className="w-3.5 h-3.5 text-violet" />
-            <span>{title} • Interactive Virtual Introduction</span>
+
+            <span>{title}</span>
           </div>
           <h2 className="font-heading text-4xl sm:text-6xl text-slate-main tracking-tight uppercase leading-none">
-            MEET SANA FATMA
+            About me
           </h2>
           <p className="font-sans text-sm sm:text-base text-slate-muted">
             {subtitle}
@@ -261,7 +261,7 @@ export const About = ({ aboutData, narrationCommand, setIsNarratingGlobal }) => 
               {/* Audio Controls Bar */}
               <div className="mt-6 w-full pt-6 border-t border-midnight-border flex flex-col items-center gap-3">
                 <span className="font-mono-tech text-xs text-slate-muted uppercase tracking-wider">
-                  Audio Introduction Controls
+                  Listen to my introduction
                 </span>
 
                 <span role="status" className="font-mono-tech text-[10px] text-cyan uppercase tracking-wider">
@@ -342,7 +342,7 @@ export const About = ({ aboutData, narrationCommand, setIsNarratingGlobal }) => 
 
                 <div className="text-[11px] font-sans text-slate-muted text-center flex items-center gap-1.5 mt-1">
                   <Volume2 className="w-3.5 h-3.5 text-cyan" />
-                  <span>Spoken via browser speech synthesis • Press play whenever you are ready</span>
+                  <span>Prefer listening? Play the introduction.</span>
                 </div>
               </div>
             </div>
@@ -359,7 +359,7 @@ export const About = ({ aboutData, narrationCommand, setIsNarratingGlobal }) => 
               </div>
 
               <h3 className="font-heading text-2xl sm:text-3xl text-slate-main tracking-wide uppercase mb-4">
-                "CRAFTING ACCESSIBLE CODE & EXPLORING INTELLIGENT AI EXPERIENCES."
+                Learning through projects and practice
               </h3>
 
               <p className="text-sm sm:text-base text-slate-main/90 leading-relaxed font-sans">
@@ -369,7 +369,7 @@ export const About = ({ aboutData, narrationCommand, setIsNarratingGlobal }) => 
               <div className="mt-7 pt-5 border-t border-midnight-border/70">
                 <div className="mb-3 flex items-center gap-2 font-mono-tech text-xs uppercase tracking-widest text-slate-muted">
                   <Volume2 className="h-3.5 w-3.5 text-cyan" />
-                  <span>Audio Narration Transcript</span>
+                  <span>Introduction transcript</span>
                 </div>
 
                 <div className="text-sm sm:text-base text-slate-main/90 leading-relaxed font-sans space-y-3">
@@ -387,15 +387,6 @@ export const About = ({ aboutData, narrationCommand, setIsNarratingGlobal }) => 
                     );
                   })}
                 </div>
-              </div>
-
-              {/* Source verification footer */}
-              <div className="mt-8 pt-4 border-t border-midnight-border/60 flex flex-wrap items-center justify-between gap-4 font-mono-tech text-xs text-slate-muted">
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-accent" />
-                  <span>Verified Resume Profile Information</span>
-                </div>
-                <span className="text-slate-muted/70">Editable via Admin Portal</span>
               </div>
             </div>
           </div>
@@ -422,9 +413,6 @@ export const About = ({ aboutData, narrationCommand, setIsNarratingGlobal }) => 
                   <p className="font-sans text-xs sm:text-sm text-slate-muted leading-relaxed">
                     {highlight.description || ''}
                   </p>
-                </div>
-                <div className={`pt-4 mt-4 border-t border-midnight-border text-[11px] font-mono-tech ${style.text}`}>
-                  Highlight 0{index + 1} • Verified Profile
                 </div>
               </div>
             );

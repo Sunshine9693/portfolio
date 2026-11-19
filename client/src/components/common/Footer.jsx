@@ -28,8 +28,8 @@ export const Footer = () => {
 
         {/* Center note */}
         <div className="text-center md:text-left text-xs font-mono-tech text-slate-muted">
-          <div>Built with React, Vite, Tailwind CSS & Node.js</div>
-          <div className="mt-1 text-cyan/80">Midnight Developer Design System</div>
+          <div>Computer Science & Engineering · Class of 2027</div>
+
         </div>
 
         {/* Back to top & Admin Link */}
@@ -56,7 +56,7 @@ export const Footer = () => {
 
       <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-midnight-border/40 flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono-tech text-slate-muted/70 gap-2">
         <span>© {CURRENT_YEAR} Sana Fatma. All rights reserved.</span>
-        <span className="text-cyan/70">Verified Portfolio Architecture</span>
+
       </div>
     </footer>
   );

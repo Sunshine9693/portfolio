@@ -32,6 +32,9 @@ export const protectAdmin = async (req, res, next) => {
           const { AdminUser } = await import('../models/AdminUser.js');
           const admin = await AdminUser.findById(decoded.id).select('-password');
           if (admin) {
+            if ((decoded.version || 0) !== (admin.tokenVersion || 0)) {
+              return res.status(401).json({ success: false, message: 'Your password has changed. Please sign in again.' });
+            }
             req.admin = admin;
             return next();
           }
@@ -43,6 +46,9 @@ export const protectAdmin = async (req, res, next) => {
       // File-based fallback
       const fileAdmin = readFileAdmin();
       if (fileAdmin && fileAdmin.id === decoded.id) {
+        if ((decoded.version || 0) !== (fileAdmin.tokenVersion || 0)) {
+          return res.status(401).json({ success: false, message: 'Your password has changed. Please sign in again.' });
+        }
         req.admin = {
           id: fileAdmin.id,
           _id: fileAdmin.id,

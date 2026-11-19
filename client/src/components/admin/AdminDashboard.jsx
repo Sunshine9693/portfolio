@@ -8,6 +8,8 @@ import { useAuth } from '../../context/AuthContext';
 import { usePortfolio } from '../../context/PortfolioContext';
 import api, { isApiCancel, resolveAssetUrl } from '../../services/api';
 import './AdminDashboard.css';
+import { ProjectEditor } from './ProjectEditor';
+import { ChangePassword } from './ChangePassword';
 
 export const AdminDashboard = () => {
   const { admin, token, isAuthenticated, isAuthLoading, login, setupAdmin, logout } = useAuth();
@@ -168,8 +170,8 @@ export const AdminDashboard = () => {
     const file = input.files?.[0];
     if (!file) return;
 
-    if (file.size > 15 * 1024 * 1024) {
-      showToast('error', 'The selected file is larger than the 15 MB limit.');
+    if (file.size > 4 * 1024 * 1024) {
+      showToast('error', 'The selected file is larger than the 4 MB limit.');
       input.value = '';
       return;
     }
@@ -226,8 +228,8 @@ export const AdminDashboard = () => {
       return;
     }
 
-    if (file.size > 15 * 1024 * 1024) {
-      showToast('error', 'The selected file is larger than the 15 MB limit.');
+    if (file.size > 4 * 1024 * 1024) {
+      showToast('error', 'The selected file is larger than the 4 MB limit.');
       return;
     }
 
@@ -432,13 +434,6 @@ export const AdminDashboard = () => {
     );
   };
 
-  const updateProject = (projectIndex, updates) => {
-    setProjectsForm((previous) =>
-      previous.map((project, index) =>
-        index === projectIndex ? { ...project, ...updates } : project
-      )
-    );
-  };
 
   // --------------------------------------------------------------------------
   // SESSION VERIFICATION VIEW
@@ -470,10 +465,10 @@ export const AdminDashboard = () => {
             </div>
             <div>
               <h2 className="font-heading text-2xl text-slate-main tracking-wide uppercase">
-                ADMIN CONTROL PORTAL
+                Portfolio admin
               </h2>
               <p className="font-mono-tech text-xs text-slate-muted">
-                Sana Fatma Portfolio Management
+                Manage projects, photos, and certificates
               </p>
             </div>
           </div>
@@ -510,12 +505,14 @@ export const AdminDashboard = () => {
           {authMode === 'login' ? (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
-                <label className="font-mono-tech text-xs text-slate-muted uppercase tracking-wider block mb-1">
+                <label htmlFor="admin-username" className="font-mono-tech text-xs text-slate-muted uppercase tracking-wider block mb-1">
                   Username or Email
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-slate-muted absolute left-3.5 top-3.5" />
                   <input
+                    id="admin-username"
+                    autoComplete="username"
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
@@ -527,12 +524,14 @@ export const AdminDashboard = () => {
               </div>
 
               <div>
-                <label className="font-mono-tech text-xs text-slate-muted uppercase tracking-wider block mb-1">
+                <label htmlFor="admin-password" className="font-mono-tech text-xs text-slate-muted uppercase tracking-wider block mb-1">
                   Password
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-muted absolute left-3.5 top-3.5" />
                   <input
+                    id="admin-password"
+                    autoComplete="current-password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -666,7 +665,7 @@ export const AdminDashboard = () => {
       )}
 
       {/* Admin Top Navigation Bar */}
-      <header className="sticky top-0 z-40 bg-midnight-surface/90 backdrop-blur-md border-b border-midnight-border px-4 sm:px-8 py-3.5 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-midnight-surface/90 backdrop-blur-md border-b border-midnight-border px-4 sm:px-8 py-3.5 flex flex-wrap gap-3 items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
             to="/"
@@ -696,6 +695,14 @@ export const AdminDashboard = () => {
           </Link>
 
           <button
+            type="button"
+            onClick={() => setActiveTab('security')}
+            className="btn-secondary px-3 py-1.5 text-sm inline-flex items-center gap-1.5"
+          >
+            <Key className="w-4 h-4" />
+            <span>Change password</span>
+          </button>
+          <button
             onClick={logout}
             className="btn-secondary px-3.5 py-1.5 rounded-xl text-xs font-mono-tech uppercase flex items-center gap-1.5 hover:border-rose-500/50 text-slate-muted hover:text-rose-400"
           >
@@ -715,6 +722,7 @@ export const AdminDashboard = () => {
             { id: 'projects', label: 'Projects Showcase' },
             { id: 'media', label: 'Certificates & Photos' },
             { id: 'inbox', label: `Inquiries (${messages.length})` },
+            { id: 'security', label: 'Account security' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -729,6 +737,8 @@ export const AdminDashboard = () => {
             </button>
           ))}
         </div>
+
+        {activeTab === 'security' && <ChangePassword />}
 
         {/* TAB 1: HERO & IDENTITY */}
         {activeTab === 'hero' && heroForm && (
@@ -978,7 +988,7 @@ export const AdminDashboard = () => {
           <div className="mt-8 space-y-6 max-w-5xl">
             <div className="flex items-center justify-between">
               <h2 className="font-heading text-2xl text-slate-main tracking-wide uppercase">
-                DOCUMENTED PROJECTS
+                Projects
               </h2>
               <button
                 onClick={() => saveSection('projects', projectsForm)}
@@ -990,57 +1000,7 @@ export const AdminDashboard = () => {
               </button>
             </div>
 
-            <div className="space-y-6">
-              {projectsForm.map((proj, pIdx) => (
-                <div key={proj.id || pIdx} className="card-dev rounded-3xl p-6 space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-midnight-border">
-                    <div>
-                      <span className="font-heading text-xl text-slate-main uppercase">{proj.title}</span>
-                      <span className="text-xs font-mono-tech text-cyan block">{proj.type} • {proj.status}</span>
-                    </div>
-                    <span className="font-mono-tech text-xs text-slate-muted">ID: {proj.id}</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="font-mono-tech text-xs text-slate-muted block mb-1">GitHub URL</label>
-                      <input
-                        type="text"
-                        value={proj.githubUrl || ''}
-                        onChange={(event) =>
-                          updateProject(pIdx, { githubUrl: event.target.value })
-                        }
-                        className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
-                      />
-                    </div>
-                    <div>
-                      <label className="font-mono-tech text-xs text-slate-muted block mb-1">Live Demo URL</label>
-                      <input
-                        type="text"
-                        value={proj.liveUrl || ''}
-                        onChange={(event) =>
-                          updateProject(pIdx, { liveUrl: event.target.value })
-                        }
-                        placeholder="Leave blank if not deployed"
-                        className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="font-mono-tech text-xs text-slate-muted block mb-1">Description</label>
-                    <textarea
-                      rows={2}
-                      value={proj.description || ''}
-                      onChange={(event) =>
-                        updateProject(pIdx, { description: event.target.value })
-                      }
-                      className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan resize-none"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ProjectEditor projects={projectsForm} onChange={setProjectsForm} isSaving={isSaving} onUpload={handleFileUpload} />
           </div>
         )}
 
@@ -1127,7 +1087,7 @@ export const AdminDashboard = () => {
                     {isSaving ? 'Uploading...' : 'Add Certificate'}
                   </button>
                 </div>
-                <p className="font-mono-tech text-[10px] text-slate-muted">PDF, JPG, PNG, or WebP · 15 MB maximum</p>
+                <p className="font-mono-tech text-[10px] text-slate-muted">PDF, JPG, PNG, or WebP · 4 MB maximum</p>
               </form>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1228,7 +1188,7 @@ export const AdminDashboard = () => {
                   )}
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <p className="font-mono-tech text-[10px] text-slate-muted">JPG, PNG, or WebP · 15 MB maximum</p>
+                  <p className="font-mono-tech text-[10px] text-slate-muted">JPG, PNG, or WebP · 4 MB maximum</p>
                   <button
                     type="submit"
                     disabled={isSaving}

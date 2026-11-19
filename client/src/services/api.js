@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 const configuredBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
-export const API_BASE_URL = configuredBaseUrl.replace(/\/+$/, '');
+// Vercel forwards production API and upload requests through the site's origin.
+// Keep an optional direct API URL for local development only.
+export const API_BASE_URL = import.meta.env.DEV ? configuredBaseUrl.replace(/\/+$/, '') : '';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

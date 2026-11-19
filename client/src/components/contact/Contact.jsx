@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import confetti from 'canvas-confetti';
 import { Mail, Phone, MapPin, Send, FileDown, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Github, Linkedin } from '../common/Icons';
 import api, { isApiCancel, resolveAssetUrl } from '../../services/api';
@@ -96,20 +95,10 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
       if (res.data?.success) {
         setStatus('success');
         setFeedbackMessage(
-          'Message received! Thank you for reaching out — Sana will review your inquiry shortly.'
+          'Thanks for your message. I’ll get back to you as soon as I can.'
         );
         setFormData(EMPTY_FORM);
 
-        try {
-          confetti({
-            particleCount: 70,
-            spread: 60,
-            origin: { y: 0.8 },
-            colors: ['#38BDF8', '#818CF8', '#A78BFA'],
-          });
-        } catch {
-          // Decorative only; never block submission feedback on it.
-        }
       } else {
         showError(res.data?.message || 'Failed to submit inquiry. Please try again.');
       }
@@ -136,14 +125,14 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
         {/* Section Header */}
         <div className="space-y-3 mb-16 max-w-2xl">
           <div className="flex items-center gap-2 text-cyan font-mono-tech text-xs uppercase tracking-widest font-bold">
-            <Sparkles className="w-3.5 h-3.5 text-violet" />
-            <span>Direct Inquiries</span>
+
+            <span>Contact</span>
           </div>
           <h2 className="font-heading text-4xl sm:text-6xl text-slate-main tracking-tight uppercase leading-none">
-            LET'S CONNECT
+            Get in touch
           </h2>
           <p className="font-sans text-sm sm:text-base text-slate-muted">
-            Open for software engineering roles, web development opportunities, and collaborative AI projects.
+            Have a role or project in mind? I’d be glad to hear about it.
           </p>
         </div>
 
@@ -152,7 +141,7 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
           <div className="lg:col-span-5 space-y-6">
             <div className="card-dev rounded-3xl p-6 sm:p-8 space-y-6">
               <h3 className="font-heading text-2xl sm:text-3xl text-slate-main tracking-wide uppercase">
-                CONTACT DETAILS
+                Contact details
               </h3>
 
               <div className="space-y-4">
@@ -166,7 +155,7 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
                   </div>
                   <div className="min-w-0">
                     <span className="font-mono-tech text-[10px] text-slate-muted uppercase tracking-wider block">
-                      Direct Email
+                      Email
                     </span>
                     <span className="font-sans text-sm sm:text-base text-slate-main group-hover:text-cyan transition-colors font-medium break-all">
                       {email}
@@ -184,7 +173,7 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
                   </div>
                   <div className="min-w-0">
                     <span className="font-mono-tech text-[10px] text-slate-muted uppercase tracking-wider block">
-                      Direct Phone
+                      Phone
                     </span>
                     <span className="font-sans text-sm sm:text-base text-slate-main group-hover:text-cyan transition-colors font-medium">
                       {phone}
@@ -236,7 +225,7 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
                   className="btn-primary px-5 py-2.5 rounded-xl text-xs font-mono-tech font-bold uppercase flex items-center gap-2 shadow-glow-cyan"
                 >
                   <FileDown className="w-4 h-4" />
-                  <span>Get Resume</span>
+                  <span>Download resume</span>
                 </a>
               </div>
             </div>
@@ -246,10 +235,10 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
           <div className="lg:col-span-7">
             <div className="card-dev rounded-3xl p-6 sm:p-10 shadow-card-dev relative overflow-hidden">
               <h3 className="font-heading text-2xl sm:text-3xl text-slate-main tracking-wide uppercase mb-2">
-                SEND A MESSAGE
+                Send a message
               </h3>
               <p className="font-sans text-xs sm:text-sm text-slate-muted mb-8">
-                Your message is stored securely and delivered to Sana's dashboard inbox.
+                Send me a message, or use the email address alongside this form.
               </p>
 
               {/* Status Alert Banners */}
@@ -258,7 +247,7 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
                   <div className="mb-6 p-4 rounded-2xl bg-midnight-elevated border border-emerald-500/50 flex items-start gap-3 text-slate-main text-xs font-mono-tech">
                     <CheckCircle2 className="w-5 h-5 text-emerald-accent shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold text-emerald-accent block mb-0.5">Submission Successful</span>
+                      <span className="font-bold text-emerald-accent block mb-0.5">Message sent</span>
                       {feedbackMessage}
                     </div>
                   </div>
@@ -268,7 +257,7 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
                   <div className="mb-6 p-4 rounded-2xl bg-rose-950/40 border border-rose-500/50 flex items-start gap-3 text-slate-main text-xs font-mono-tech">
                     <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold text-rose-400 block mb-0.5">Submission Error</span>
+                      <span className="font-bold text-rose-400 block mb-0.5">Message not sent</span>
                       {feedbackMessage}
                     </div>
                   </div>
@@ -282,7 +271,7 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
                       htmlFor="contact-name"
                       className="font-mono-tech text-xs text-slate-muted uppercase tracking-wider block"
                     >
-                      Full Name *
+                      Name *
                     </label>
                     <input
                       id="contact-name"
@@ -290,7 +279,7 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      placeholder="e.g. Alex Mercer"
+                      placeholder="Your name"
                       autoComplete="name"
                       minLength={NAME_MIN}
                       maxLength={NAME_MAX}
@@ -334,7 +323,7 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
-                    placeholder="e.g. Opportunity Discussion / Project Collaboration"
+                    placeholder="What would you like to discuss?"
                     autoComplete="off"
                     maxLength={SUBJECT_MAX}
                     className="w-full px-4 py-3 rounded-xl bg-midnight-elevated border border-midnight-border text-slate-main font-sans text-sm focus:outline-none focus:border-cyan transition-colors placeholder:text-slate-muted/40"
@@ -347,7 +336,7 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
                       htmlFor="contact-message"
                       className="font-mono-tech text-xs text-slate-muted uppercase tracking-wider block"
                     >
-                      Message Content *
+                      Message *
                     </label>
                     <span className="font-mono-tech text-[10px] text-slate-muted/70">
                       {formData.message.length} / {MESSAGE_MAX}
@@ -373,7 +362,7 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
                   className="btn-primary w-full py-4 rounded-xl text-xs sm:text-sm font-mono-tech font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-glow-cyan disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Send className="w-4 h-4" />
-                  <span>{status === 'submitting' ? 'Submitting Message...' : 'Send Inquiry'}</span>
+                  <span>{status === 'submitting' ? 'Sending…' : 'Send message'}</span>
                 </button>
               </form>
             </div>

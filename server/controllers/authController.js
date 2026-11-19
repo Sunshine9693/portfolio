@@ -10,8 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ADMIN_FILE = path.join(__dirname, '..', 'data', 'adminUser.json');
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, env.jwtSecret, { expiresIn: '7d' });
+const generateToken = (id, version = 0) => {
+  return jwt.sign({ id, version }, env.jwtSecret, { expiresIn: '7d' });
 };
 
 const isValidEmail = (value) => /^\S+@\S+\.\S+$/.test(value);
@@ -82,7 +82,7 @@ export const loginAdmin = async (req, res) => {
           }
           admin.lastLogin = new Date();
           await admin.save();
-          const token = generateToken(admin._id);
+          const token = generateToken(admin._id, admin.tokenVersion);
           return res.json({
             success: true,
             token,
@@ -113,7 +113,7 @@ export const loginAdmin = async (req, res) => {
     fileAdmin.lastLogin = new Date().toISOString();
     writeFileAdmin(fileAdmin);
 
-    const token = generateToken(fileAdmin.id);
+    const token = generateToken(fileAdmin.id, fileAdmin.tokenVersion);
     return res.json({
       success: true,
       token,
@@ -150,6 +150,9 @@ export const getMe = async (req, res) => {
 
 export const setupInitialAdmin = async (req, res) => {
   try {
+    if (env.isProduction && !isMongoConnected) {
+      return res.status(503).json({ success: false, message: 'Account storage is temporarily unavailable. Please try again shortly.' });
+    }
     const { setupToken, username, email, password } = req.body;
 
     const expectedToken = env.adminSetupToken;
@@ -247,5 +250,65 @@ export const setupInitialAdmin = async (req, res) => {
   } catch (error) {
     console.error('Initial admin setup error:', error);
     return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Account recovery requires the server owner's setup key and the existing email.
+export const recoverAdminAccess = async (req, res) => {
+  try {
+    const { setupToken, email, password } = req.body || {};
+    if (!env.adminSetupToken || typeof setupToken !== 'string' || setupToken !== env.adminSetupToken) {
+      return res.status(403).json({ success: false, message: 'The recovery key is invalid.' });
+    }
+    if (typeof email !== 'string' || !isValidEmail(email.trim()) || typeof password !== 'string' || password.length < 12 || password.length > 200) {
+      return res.status(400).json({ success: false, message: 'Provide the existing account email and a password of 12 to 200 characters.' });
+    }
+    const Model = await getAdminUserModel();
+    if (!Model || !isMongoConnected) {
+      return res.status(503).json({ success: false, message: 'Account storage is temporarily unavailable.' });
+    }
+    const admin = await Model.findOne({ email: email.trim().toLowerCase() });
+    if (!admin) return res.status(404).json({ success: false, message: 'No administrator matches this email address.' });
+    admin.password = password;
+    admin.tokenVersion = (admin.tokenVersion || 0) + 1;
+    await admin.save();
+    return res.json({ success: true, admin: { username: admin.username, email: admin.email } });
+  } catch (error) {
+    console.error('Admin recovery failed:', error.message);
+    return res.status(500).json({ success: false, message: 'Could not recover access. Please try again.' });
+  }
+};
+
+export const changeAdminPassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    if (typeof currentPassword !== 'string' || !currentPassword || currentPassword.length > 200) {
+      return res.status(400).json({ success: false, message: 'Enter your current password.' });
+    }
+    if (typeof newPassword !== 'string' || newPassword.length < 12 || Buffer.byteLength(newPassword, 'utf8') > 72) {
+      return res.status(400).json({ success: false, message: 'Choose a password of at least 12 characters and no more than 72 bytes.' });
+    }
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ success: false, message: 'Choose a different password from your current one.' });
+    }
+    const Model = await getAdminUserModel();
+    const databaseAdmin = Model && isMongoConnected ? await Model.findById(req.admin.id || req.admin._id) : null;
+    const fileAdmin = !env.isProduction && !databaseAdmin ? readFileAdmin() : null;
+    const admin = databaseAdmin || (fileAdmin?.id === req.admin.id ? fileAdmin : null);
+    if (!admin) return res.status(503).json({ success: false, message: 'Account storage is temporarily unavailable. Your password has not changed.' });
+    const matches = databaseAdmin ? await admin.matchPassword(currentPassword) : await bcrypt.compare(currentPassword, admin.password);
+    if (!matches) return res.status(400).json({ success: false, message: 'Your current password is incorrect.' });
+    admin.tokenVersion = (admin.tokenVersion || 0) + 1;
+    if (databaseAdmin) {
+      admin.password = newPassword;
+      await admin.save();
+    } else {
+      admin.password = await bcrypt.hash(newPassword, 10);
+      writeFileAdmin(admin);
+    }
+    return res.json({ success: true, message: 'Password changed. Other sessions have been signed out.', token: generateToken(admin.id || admin._id, admin.tokenVersion) });
+  } catch (error) {
+    console.error('Password change failed:', error.message);
+    return res.status(500).json({ success: false, message: 'Could not change your password. Please try again.' });
   }
 };

@@ -126,14 +126,14 @@ export const Gallery = ({ certificatesData, galleryData }) => {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div className="space-y-3 max-w-2xl">
             <div className="flex items-center gap-2 text-cyan font-mono-tech text-xs uppercase tracking-widest font-bold">
-              <Sparkles className="w-3.5 h-3.5 text-violet" />
-              <span>Verified Documents & Gallery</span>
+
+              <span>Continued learning</span>
             </div>
             <h2 className="font-heading text-4xl sm:text-6xl text-slate-main tracking-tight uppercase leading-none">
               Certificates & Learning
             </h2>
             <p className="font-sans text-sm sm:text-base text-slate-muted">
-              Verified credentials, skill-building milestones, and selected portfolio media.
+              Courses, certificates, and moments from my work.
             </p>
           </div>
 
@@ -162,7 +162,7 @@ export const Gallery = ({ certificatesData, galleryData }) => {
           <div className="mb-14 space-y-6">
             <div className="flex items-center gap-2 text-xs font-mono-tech text-slate-main uppercase tracking-widest font-bold">
               <Award className="w-4 h-4 text-cyan" />
-              <span>Verified Professional Certifications</span>
+              <span>Certificates</span>
             </div>
 
             {certificates.length === 0 ? (
@@ -198,7 +198,7 @@ export const Gallery = ({ certificatesData, galleryData }) => {
                     <div className="pt-4 border-t border-midnight-border flex items-center justify-between gap-3">
                       <span className="flex items-center gap-1 text-[11px] font-mono-tech text-emerald-accent">
                         <ShieldCheck className="w-3.5 h-3.5" />
-                        Verified Document
+                        Certificate
                       </span>
 
                       {certificate.fileUrl && (
@@ -208,7 +208,7 @@ export const Gallery = ({ certificatesData, galleryData }) => {
                           className="btn-secondary px-3.5 py-1.5 rounded-lg text-xs font-mono-tech flex items-center gap-1.5 hover:border-cyan/50 hover:text-cyan"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>Inspect</span>
+                          <span>View certificate</span>
                         </button>
                       )}
                     </div>
@@ -224,7 +224,7 @@ export const Gallery = ({ certificatesData, galleryData }) => {
           <div className="space-y-6">
             <div className="flex items-center gap-2 text-xs font-mono-tech text-slate-main uppercase tracking-widest font-bold">
               <ImageIcon className="w-4 h-4 text-violet" />
-              <span>Media Assets & Showcase</span>
+              <span>Gallery</span>
             </div>
 
             {gallery.length === 0 ? (
@@ -286,7 +286,7 @@ export const Gallery = ({ certificatesData, galleryData }) => {
             <div className="flex items-center justify-between pb-4 border-b border-midnight-border mb-4">
               <div className="space-y-0.5 text-left">
                 <span className="font-mono-tech text-xs text-cyan uppercase font-bold">
-                  {activePreview.type === 'pdf' ? 'Verified Document Viewer' : 'Media Preview'}
+                  {activePreview.type === 'pdf' ? 'Certificate viewer' : 'Media Preview'}
                 </span>
                 <h4 className="font-heading text-2xl text-slate-main tracking-wide uppercase">
                   {activePreview.title}

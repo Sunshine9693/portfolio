@@ -17,7 +17,7 @@ services:
         value: production
       # Comma-separated list; "*" matches Vercel preview deployment URLs.
       - key: CLIENT_URL
-        value: https://portfolio-ivory-tau-82.vercel.app,https://portfolio-*.vercel.app
+        value: https://sanafatma-portfolio.vercel.app,https://portfolio-ivory-tau-82.vercel.app,https://portfolio-*.vercel.app
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
@@ -30,11 +30,4 @@ services:
       - key: OPENROUTER_MODEL
         value: openai/gpt-4o-mini
 
-    # Persistent uploads require a paid instance type (Free instances cannot
-    # attach disks). After upgrading, uncomment the block below and add
-    # UPLOADS_DIR=/var/data/uploads to envVars.
-    #
-    # disk:
-    #   name: portfolio-uploads
-    #   mountPath: /var/data
-    #   sizeGB: 1
+    # Uploaded media is stored in MongoDB GridFS; a persistent disk is not needed.

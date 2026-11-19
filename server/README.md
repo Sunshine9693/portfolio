@@ -1,7 +1,9 @@
-# Backend Storage
+# Backend storage
 
-Portfolio content metadata is stored in MongoDB when connected, with the existing local JSON cache as a fallback. For durable production metadata, configure the existing `MONGODB_URI` to a persistent MongoDB database. Uploaded file contents are stored on disk and served from `/uploads`.
+Portfolio content, admin accounts, and uploaded media use the configured MongoDB database in production. Uploaded photos, project images, resumes, and certificates are stored in GridFS and served through `/uploads/:filename`; they survive Render redeploys and instance changes. The Vercel frontend forwards `/api` and `/uploads` to the Render backend through same-origin rewrites.
 
-By default, uploads are written to `server/uploads`. Set `UPLOADS_DIR` to a writable, durable storage path in the backend environment when deploying. The directory must persist across restarts and be shared by backend instances that serve the same portfolio. Without persistent storage, uploaded files may be lost when the hosting platform replaces its filesystem.
+Files are limited to 4 MB to fit Vercel function requests. Supported types are JPEG, PNG, WebP, and PDF, with file signature checks. Photo uploads accept images only. Uploads and deletes require an authenticated admin.
 
-The portfolio database stores file URLs, not the file contents; configuring MongoDB alone does not make uploaded files durable.
+Local development without MongoDB retains the disk fallback. Production uploads fail if persistent storage is unavailable. Existing disk uploads remain accessible where the files are still present; files lost before this change need to be uploaded again.
+
+Use `/admin` on the portfolio to sign in. The Projects tab supports adding projects, editing all project details, selecting a featured project, and removing items from the draft. Save Projects publishes the draft. Certificates & Photos uploads publish after upload and metadata save.
