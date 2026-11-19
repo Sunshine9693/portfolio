@@ -194,7 +194,6 @@ export const Projects = ({ projectsData }) => {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div className="space-y-3 max-w-2xl">
             <div className="flex items-center gap-2 text-cyan font-mono-tech text-xs uppercase tracking-widest font-bold">
-              <Sparkles className="w-3.5 h-3.5 text-violet" />
               <span>Selected work</span>
             </div>
             <h2 className="font-heading text-4xl sm:text-6xl text-slate-main tracking-tight uppercase leading-none">
