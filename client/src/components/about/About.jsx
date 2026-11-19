@@ -23,19 +23,19 @@ const DEFAULT_NARRATION =
 
 const DEFAULT_HIGHLIGHTS = [
   {
-    title: 'Full-Stack Foundations',
+    title: "Web development",
     description:
       'I build React interfaces and connect them to Express APIs and MongoDB.',
     icon: 'Layers',
   },
   {
-    title: 'AI & Conversational UX',
+    title: "AI projects",
     description:
       'I use language model APIs and browser speech tools in voice assistant projects.',
     icon: 'Brain',
   },
   {
-    title: 'Core Problem Solving',
+    title: "Programming",
     description:
       'I practise data structures and algorithms in C, C++, and Java.',
     icon: 'Code',
@@ -366,11 +366,11 @@ export const About = ({ aboutData, narrationCommand, setIsNarratingGlobal }) => 
                 {bio}
               </p>
 
-              <div className="mt-7 pt-5 border-t border-midnight-border/70">
-                <div className="mb-3 flex items-center gap-2 font-mono-tech text-xs uppercase tracking-widest text-slate-muted">
+              <details className="mt-7 pt-5 border-t border-midnight-border/70">
+                <summary className="cursor-pointer mb-3 flex items-center gap-2 font-mono-tech text-xs uppercase tracking-widest text-slate-muted">
                   <Volume2 className="h-3.5 w-3.5 text-cyan" />
-                  <span>Introduction transcript</span>
-                </div>
+                  <span>Read audio transcript</span>
+                </summary>
 
                 <div className="text-sm sm:text-base text-slate-main/90 leading-relaxed font-sans space-y-3">
                   {sentences.map((sentence, index) => {
@@ -387,7 +387,7 @@ export const About = ({ aboutData, narrationCommand, setIsNarratingGlobal }) => 
                     );
                   })}
                 </div>
-              </div>
+              </details>
             </div>
           </div>
         </div>

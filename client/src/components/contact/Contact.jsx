@@ -26,8 +26,8 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
 
   const email = socialLinksData?.email || 'sanathesunshine9693@gmail.com';
   const phone = socialLinksData?.phone || '+91 7479895668';
-  const github = socialLinksData?.github || 'https://github.com/sanathesunshine';
-  const linkedin = socialLinksData?.linkedin || 'https://linkedin.com';
+  const github = socialLinksData?.github || 'https://github.com/Sunshine9693';
+  const linkedin = socialLinksData?.linkedin || 'https://www.linkedin.com/in/sana-fatma-a00b49294/';
   const location = socialLinksData?.location || 'Hyderabad, India';
   const resolvedResumeUrl = resolveAssetUrl(resumeUrl) || '/Sana_Fatma_Resume.pdf';
 

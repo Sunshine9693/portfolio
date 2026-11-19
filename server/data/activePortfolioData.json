@@ -2,8 +2,8 @@
   "version": 1,
   "hero": {
     "name": "Sana Fatma",
-    "headline": "BUILDING IDEAS INTO INTELLIGENT EXPERIENCES.",
-    "supportingCopy": "Computer Science undergraduate exploring web development, software engineering, and AI-powered applications.",
+    "headline": "I build web applications and work with AI.",
+    "supportingCopy": "I'm a Computer Science student at MANUU, graduating in 2027. My work includes React applications, backend services, and a voice assistant built with language model APIs.",
     "roles": [
       "Computer Science Student",
       "Web Developer",
@@ -20,46 +20,46 @@
     ],
     "stats": [
       {
-        "label": "Academic CGPA",
+        "label": "CGPA",
         "value": "8.72",
-        "sublabel": "Consistent >8.5"
+        "sublabel": "B.Tech Computer Science"
       },
       {
         "label": "Internships",
         "value": "03",
-        "sublabel": "Industry Experience"
+        "sublabel": "Web development and Java"
       },
       {
-        "label": "Documented Projects",
+        "label": "Projects",
         "value": "05",
-        "sublabel": "AI & Web Solutions"
+        "sublabel": "Web applications and AI"
       },
       {
-        "label": "Expected Year",
+        "label": "Graduation",
         "value": "2027",
-        "sublabel": "B.Tech CSE MANUU"
+        "sublabel": "MANUU, Hyderabad"
       }
     ]
   },
   "about": {
     "title": "ABOUT ME",
-    "subtitle": "Bridging Frontend Craftsmanship with AI Innovation",
-    "bio": "I'm Sana Fatma, a Computer Science and Engineering undergraduate passionate about building responsive web applications and exploring AI-powered experiences. Through personal projects, academic work, and three internships, I've been developing practical skills across frontend development, backend integration, databases, and Java programming. I enjoy turning ideas into functional products while continuously improving my problem-solving skills.",
-    "narrationScript": "Hello, and welcome! I am Sana Fatma, a Computer Science and Engineering undergraduate passionate about crafting responsive web applications and exploring AI-powered experiences. Through my academic work, five projects including AURA, and three internships across web development and Java programming, I turn creative ideas into reliable, intelligent digital products.",
+    "subtitle": "My background and what I’m working on",
+    "bio": "I'm studying Computer Science and Engineering at MANUU in Hyderabad. Through coursework, personal projects, and three internships, I've worked with React, Node.js, MongoDB, and Java. I enjoy building interfaces, connecting them to backend services, and working through the problems that come up along the way.",
+    "narrationScript": "Hi, I'm Sana Fatma. I'm studying Computer Science and Engineering at MANUU and expect to graduate in 2027. I've completed three internships in web development and Java programming. My projects include AURA, a voice assistant, and SnapShoes, an e-commerce application. You can read about my work below or get in touch to discuss an opportunity.",
     "highlights": [
       {
-        "title": "Full-Stack Foundations",
-        "description": "Hands-on experience developing modular interfaces with React and connecting RESTful Express services with MongoDB.",
+        "title": "Web development",
+        "description": "I build React interfaces and connect them to Express APIs and MongoDB.",
         "icon": "Layers"
       },
       {
-        "title": "AI & Conversational UX",
-        "description": "Building voice-first AI assistants and LLM integrations grounded in practical task automation.",
+        "title": "AI projects",
+        "description": "I use language model APIs and browser speech tools in voice assistant projects.",
         "icon": "Brain"
       },
       {
-        "title": "Core Problem Solving",
-        "description": "Strong foundation in Data Structures and Algorithms with C, C++, and object-oriented Java development.",
+        "title": "Programming",
+        "description": "I practise data structures and algorithms in C, C++, and Java.",
         "icon": "Code"
       }
     ]
@@ -67,10 +67,10 @@
   "skills": [
     {
       "id": "frontend",
-      "category": "Frontend Engineering",
+      "category": "Frontend development",
       "tag": "UI & Interactivity",
       "featured": false,
-      "description": "Creating accessible, high-performance user interfaces with clean component architectures and responsive CSS.",
+      "description": "Building responsive interfaces with React, JavaScript, and CSS.",
       "items": [
         {
           "name": "HTML5",
@@ -112,9 +112,9 @@
     {
       "id": "data-ai",
       "category": "Data & Artificial Intelligence",
-      "tag": "Featured Specialization",
+      "tag": "AI & data",
       "featured": true,
-      "description": "Leveraging LLM APIs, prompt engineering, and Python analytics tooling to create dynamic, intelligent applications.",
+      "description": "Working with language model APIs, Python, and data analysis tools.",
       "items": [
         {
           "name": "LLM APIs",
@@ -153,7 +153,7 @@
       "category": "Backend & Databases",
       "tag": "Server & Storage",
       "featured": false,
-      "description": "Architecting RESTful services, integrating persistent databases, and implementing secure API pipelines.",
+      "description": "Building Express APIs and connecting them to MongoDB.",
       "items": [
         {
           "name": "Node.js",
@@ -192,7 +192,7 @@
       "category": "Programming & Core Concepts",
       "tag": "Computer Science Core",
       "featured": false,
-      "description": "Strengthening algorithmic efficiency, modular object-oriented programming, and computational thinking.",
+      "description": "Practising algorithms and object-oriented programming.",
       "items": [
         {
           "name": "Java",
@@ -226,13 +226,13 @@
     {
       "id": "aura-voice-assistant",
       "title": "AURA — Personalized AI Voice Assistant",
-      "subtitle": "Full-Stack Voice-Enabled Productivity Assistant",
+      "subtitle": "Voice assistant with React and Node.js",
       "type": "Personal Project",
       "status": "Ongoing",
       "category": "Artificial Intelligence & Full-Stack",
       "featured": true,
-      "description": "A full-stack, voice-enabled personal assistant integrating React.js, Node.js, Express.js, MongoDB, and LLM APIs for natural conversational task automation.",
-      "longDescription": "AURA is Sana Fatma’s flagship AI exploration: a full-stack, web-based assistant built to simplify information retrieval, voice communication, notes, reminders, and daily task management into an integrated conversational experience.",
+      "description": "A voice assistant for spoken questions, notes, reminders, and weather updates.",
+      "longDescription": "I built AURA to handle spoken requests, save notes and reminders, and answer questions. It connects a React interface to an Express backend, language model APIs, and MongoDB.",
       "technologies": [
         "React.js",
         "Vite",
@@ -245,23 +245,23 @@
         "Web Speech API"
       ],
       "features": [
-        "Personalized natural language AI interaction through conversational prompting",
-        "Voice-based assistance and speech-to-text input processing",
-        "Built-in modules for notes, reminders, weather updates, and fast info retrieval",
-        "Robust REST APIs linking the frontend and AI backend using Axios",
-        "MongoDB persistent storage for user preferences and conversational records",
-        "Responsive dark interface designed with React, Vite, and Tailwind CSS"
+        "Spoken questions and responses",
+        "Notes, reminders, and weather updates",
+        "React frontend connected to Express APIs",
+        "Saved preferences and conversation history",
+        "MongoDB storage",
+        "Responsive React interface"
       ],
       "plannedFeatures": [
-        "Future multilingual voice translation module",
-        "Direct email and calendar workflow integrations",
-        "Smart-home device triggers via IoT webhooks"
+        "Multilingual voice support",
+        "Email and calendar integration",
+        "Smart-home controls"
       ],
       "architecture": [
-        "Frontend: React.js + Vite + Tailwind CSS with Web Speech recognition and synthesis",
-        "Backend: Express.js REST server handling LLM prompt grounding and tool execution",
-        "Database: MongoDB Atlas storing notes, reminders, and user state",
-        "Client-Server: Secure Axios HTTP communication with JWT session tokens"
+        "React handles voice input and displays responses.",
+        "Express sends requests to the language model API.",
+        "MongoDB stores notes, reminders, and preferences.",
+        "Axios connects the frontend to the backend."
       ],
       "githubUrl": "https://github.com/Sunshine9693/mine_project.git",
       "liveUrl": "https://mine-project-nu.vercel.app/",
@@ -270,13 +270,13 @@
     {
       "id": "snapshoes-ecommerce",
       "title": "SnapShoes — Full-Stack E-Commerce Web App",
-      "subtitle": "Modern Footwear Catalog & Cart Experience",
+      "subtitle": "Footwear shopping application",
       "type": "Personal Project",
       "status": "Ongoing",
       "category": "Frontend & E-Commerce",
       "featured": false,
-      "description": "Developing the frontend of a responsive e-commerce shoe platform with comprehensive product exploration, cart management, and user authentication flows.",
-      "longDescription": "SnapShoes offers an interactive online shopping portal with modern filtering, interactive product showcases, wishlist saving, and streamlined checkout UI flows.",
+      "description": "I'm building a shoe-shopping interface with product listings, a cart, a wishlist, and sign-in pages.",
+      "longDescription": "SnapShoes is an ongoing React project. My focus is the frontend: browsing and filtering products, managing a cart and wishlist, and building the account and checkout screens.",
       "technologies": [
         "React.js",
         "JavaScript (ES6+)",
@@ -284,19 +284,19 @@
         "Responsive UI"
       ],
       "features": [
-        "Dynamic product listing and detailed single-item views",
-        "Interactive shopping cart calculation and wishlist toggling",
-        "User login and account registration interface flows",
-        "Fluid responsive layout spanning mobile, tablet, and widescreen monitors"
+        "Product listings and detail pages",
+        "Shopping cart and wishlist",
+        "Sign-in and registration screens",
+        "Responsive layouts for phones and desktops"
       ],
       "plannedFeatures": [
-        "Integrated payment gateway checkout",
-        "Order tracking dashboard and inventory webhook hooks"
+        "Payment integration",
+        "Order tracking and inventory updates"
       ],
       "architecture": [
-        "Modular React components for catalog, cart, and authentication",
-        "Local state management for cart synchronization across views",
-        "Tailwind CSS design system with custom brand color tokens"
+        "React components for products, cart, and account screens.",
+        "Shared state keeps the cart in sync across pages.",
+        "Tailwind CSS handles the responsive layouts."
       ],
       "githubUrl": "https://github.com/Sunshine9693/Snapshoes.git",
       "liveUrl": "",
@@ -305,13 +305,13 @@
     {
       "id": "hostel-allocation-system",
       "title": "Automated Hostel Allocation System",
-      "subtitle": "Fairness-Driven Academic Group Solution",
+      "subtitle": "Academic group project",
       "type": "College Group Project",
       "status": "Completed",
       "category": "Database & Systems",
       "featured": false,
-      "description": "A database-driven allocation system replacing manual paper room assignments with automated constraint-based allocation logic.",
-      "longDescription": "Developed collaboratively at MANUU, this application automates the university hostel allotment workflow, providing a student application portal and an administrative dashboard.",
+      "description": "A group project that assigns hostel rooms using student applications, available capacity, and allocation rules.",
+      "longDescription": "Built with a team at MANUU, this project brings student applications and hostel room allocation into one system. Students can apply for rooms, and administrators can review and manage allotments.",
       "technologies": [
         "HTML5",
         "CSS3",
@@ -320,33 +320,33 @@
         "Algorithmic Allocation Logic"
       ],
       "features": [
-        "Student application workflow with academic verification checks",
-        "Comprehensive administrative management dashboard for seat allotment",
-        "Frontend and database integration automating seat assignment",
-        "Constraint-based allocation logic designed to maintain transparency and fairness"
+        "Student applications and eligibility checks",
+        "Dashboard for room allotments",
+        "Connected application forms and database",
+        "Room assignments based on allocation rules"
       ],
       "plannedFeatures": [
-        "Automated SMS notifications for selected room allocations"
+        "SMS notifications for room assignments"
       ],
       "architecture": [
-        "Frontend UI for student applications and admin status review",
-        "Relational database schema storing student criteria, room capacity, and quotas",
-        "Deterministic rule engine prioritizing allocations according to college guidelines"
+        "Students apply through a web form.",
+        "A database stores applications and room availability.",
+        "Allocation rules determine room assignments."
       ],
-      "githubUrl": "https://github.com/sanathesunshine",
+      "githubUrl": "https://github.com/Sunshine9693",
       "liveUrl": "",
       "imageUrl": "/images/hero.png"
     },
     {
       "id": "task-management-system",
       "title": "Intelligent Task Management System",
-      "subtitle": "Modular To-Do & Productivity Application",
+      "subtitle": "Task list with priorities",
       "type": "Personal Project",
       "status": "Completed",
       "category": "Web Application",
       "featured": false,
-      "description": "A streamlined task management web application with dynamic priority sorting, real-time DOM updates, and browser local storage persistence.",
-      "longDescription": "Built with pure vanilla JavaScript to demonstrate strong core DOM manipulation and modular programming without heavy framework overhead.",
+      "description": "A JavaScript task manager that sorts tasks by priority and saves them in the browser.",
+      "longDescription": "I built this task manager with JavaScript, HTML, and CSS to practise DOM updates and local storage. Tasks can be organised by priority and remain saved after the page is closed.",
       "technologies": [
         "Vanilla JavaScript (ES6+)",
         "HTML5",
@@ -354,17 +354,17 @@
         "Local Storage API"
       ],
       "features": [
-        "Dynamic task prioritization (Urgent, High, Normal)",
-        "Instant real-time UI updates with zero page reloads",
-        "Persistent state stored securely in browser LocalStorage",
-        "Modular, maintainable code architecture with decoupled modules"
+        "Urgent, high, and normal priorities",
+        "Updates without reloading the page",
+        "Tasks saved in browser local storage",
+        "Separate code for data, display, and events"
       ],
       "plannedFeatures": [
-        "Custom task category tags and deadline notifications"
+        "Task categories and deadline reminders"
       ],
       "architecture": [
-        "Modular JS pattern separating Data Store, UI Renderer, and Event Listeners",
-        "LocalStorage synchronization hook on every create, edit, or delete action"
+        "JavaScript handles tasks, page updates, and user actions.",
+        "Local storage saves changes when tasks are added, edited, or removed."
       ],
       "githubUrl": "https://github.com/Sunshine9693/Intelligent-Task-Management-System.git",
       "liveUrl": "",
@@ -373,13 +373,13 @@
     {
       "id": "music-player-spotify-clone",
       "title": "User Interaction-Based Music Player",
-      "subtitle": "Audio Interface & Spotify Clone",
+      "subtitle": "Web music player",
       "type": "Personal Project",
       "status": "Completed",
       "category": "Audio & Interactive UI",
       "featured": false,
-      "description": "An interactive web music player featuring a custom seek bar, playlist controls, and real-time audio playback feedback.",
-      "longDescription": "Engineered to study ergonomic user interaction patterns and audio DOM events, implementing smooth scrub bars, volume controls, and track queues.",
+      "description": "A browser music player with playlists, track seeking, and volume controls.",
+      "longDescription": "I built this player to practise the HTML audio API and JavaScript events. It includes a seek bar, track queue, playback status, and volume controls.",
       "technologies": [
         "HTML5 Audio API",
         "CSS3 Animations",
@@ -387,17 +387,17 @@
         "Event Handling"
       ],
       "features": [
-        "Custom interactive seek bar with smooth scrubbing and time stamps",
-        "Dynamic playlist management and track queueing",
-        "Real-time audio feedback, playing states, and volume controls",
-        "Responsive navigation and playback controls for mobile devices"
+        "Seek bar with playback time",
+        "Playlists and a track queue",
+        "Playback status and volume controls",
+        "Controls that work on mobile"
       ],
       "plannedFeatures": [
-        "Audio visualizer canvas frequencies and lyric synchronization"
+        "Audio visualiser and synced lyrics"
       ],
       "architecture": [
-        "HTML5 Audio API event listeners (timeupdate, loadedmetadata, ended)",
-        "CSS transition timeline with dynamic width calculations"
+        "HTML audio events track playback and song changes.",
+        "JavaScript updates the seek bar and playback controls."
       ],
       "githubUrl": "https://github.com/Sunshine9693/Spotify-Clone.git",
       "liveUrl": "",
@@ -486,7 +486,7 @@
   "achievements": [
     {
       "id": "cgpa",
-      "title": "Consistent Academic Excellence",
+      "title": "Academic progress",
       "metric": "8.72 CGPA",
       "tag": "Academic Track Record",
       "description": "Maintained a cumulative grade point average above 8.5 throughout the B.Tech CSE program at MANUU.",
@@ -494,10 +494,10 @@
     },
     {
       "id": "triple-internship",
-      "title": "Three Professional Internships",
+      "title": "Three internships",
       "metric": "3 Internships",
-      "tag": "Industry Experience",
-      "description": "Completed three competitive internships across web development and Java programming within a single academic year.",
+      "tag": "Web development and Java",
+      "description": "Completed three internships in web development and Java programming.",
       "link": ""
     },
     {
@@ -505,7 +505,7 @@
       "title": "Open Source Contributor — SSoC",
       "metric": "SSoC Contributor",
       "tag": "Developer Community",
-      "description": "Contributor at Social Summer of Code (SSoC), producing technical documentation, guides, and translations for developer audiences.",
+      "description": "Contributed documentation, guides, and translations through Social Summer of Code.",
       "link": ""
     },
     {
@@ -513,16 +513,16 @@
       "title": "React Hyderabad Community",
       "metric": "Volunteer Member",
       "tag": "Tech Community",
-      "description": "Active volunteer member in React Hyderabad, engaging in developer meetups, technical sessions, and community learning.",
+      "description": "Volunteer with React Hyderabad, taking part in meetups and technical sessions.",
       "link": ""
     },
     {
       "id": "active-github",
-      "title": "Active GitHub Portfolio",
+      "title": "Personal projects",
       "metric": "5+ Projects",
       "tag": "Open Code",
-      "description": "Actively develops and maintains personal projects on GitHub, including AI voice assistants, full-stack apps, and core tools.",
-      "link": "https://github.com/sanathesunshine"
+      "description": "My GitHub includes a voice assistant, web applications, and JavaScript projects.",
+      "link": "https://github.com/Sunshine9693"
     }
   ],
   "certificates": [
@@ -533,7 +533,7 @@
       "date": "August 2026",
       "credentialUrl": "",
       "fileUrl": "/certificates/ibm_genai.pdf",
-      "description": "Specialized credential covering generative model architectures, prompting techniques, LLM applications, and ethical AI development.",
+      "description": "Coursework in generative AI, prompting, language models, and responsible use.",
       "verified": true
     },
     {
@@ -543,7 +543,7 @@
       "date": "August 2026",
       "credentialUrl": "",
       "fileUrl": "/certificates/ibm_github.pdf",
-      "description": "Comprehensive certification on collaborative version control, branch workflows, merge conflict resolution, and open-source contribution patterns.",
+      "description": "Coursework in Git, branches, collaboration, and resolving merge conflicts.",
       "verified": true
     },
     {
@@ -553,7 +553,7 @@
       "date": "September 2026",
       "credentialUrl": "",
       "fileUrl": "/certificates/neo4j_cert.pdf",
-      "description": "Professional validation on graph database theory, Cypher querying language, node-relationship traversal, and connected data modeling.",
+      "description": "Coursework in graph databases, Cypher queries, and data modelling.",
       "verified": true
     }
   ],
@@ -579,8 +579,8 @@
     "email": "sanathesunshine9693@gmail.com",
     "phone": "+91 7479895668",
     "location": "India",
-    "github": "https://github.com",
-    "linkedin": "https://linkedin.com"
+    "github": "https://github.com/Sunshine9693",
+    "linkedin": "https://www.linkedin.com/in/sana-fatma-a00b49294/"
   },
   "sectionVisibility": {
     "about": true,

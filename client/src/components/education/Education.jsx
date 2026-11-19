@@ -19,38 +19,38 @@ export const Education = ({ educationData, achievementsData }) => {
   const defaultAchievements = [
     {
       id: 'cgpa',
-      title: 'Consistent Academic Excellence',
+      title: "Academic progress",
       metric: '8.72 CGPA',
       tag: 'Academic Track Record',
       description: 'Maintained a cumulative grade point average above 8.5 throughout the B.Tech CSE program at MANUU.'
     },
     {
       id: 'triple-internship',
-      title: 'Three Professional Internships',
+      title: "Three internships",
       metric: '3 Internships',
       tag: 'Web development and Java',
-      description: 'Completed three competitive internships across web development and Java programming within a single academic year.'
+      description: "Completed three internships in web development and Java programming."
     },
     {
       id: 'ssoc-contributor',
       title: 'Open Source Contributor — SSoC',
       metric: 'SSoC Contributor',
       tag: 'Developer Community',
-      description: 'Contributor at Social Summer of Code (SSoC), producing technical documentation, guides, and translations for developer audiences.'
+      description: "Contributed documentation, guides, and translations through Social Summer of Code."
     },
     {
       id: 'react-hyd',
       title: 'React Hyderabad Community',
       metric: 'Volunteer Member',
       tag: 'Tech Community',
-      description: 'Active volunteer member in React Hyderabad, engaging in developer meetups, technical sessions, and community learning.'
+      description: "Volunteer with React Hyderabad, taking part in meetups and technical sessions."
     },
     {
       id: 'active-github',
-      title: 'Active GitHub Portfolio',
+      title: "Personal projects",
       metric: '5+ Projects',
       tag: 'Open Code',
-      description: 'Actively develops and maintains personal projects on GitHub, including AI voice assistants, full-stack apps, and core tools.'
+      description: "My GitHub includes a voice assistant, web applications, and JavaScript projects."
     }
   ];
 

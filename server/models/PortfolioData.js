@@ -116,8 +116,8 @@ const portfolioDataSchema = new mongoose.Schema({
     email: { type: String, default: 'sanathesunshine9693@gmail.com' },
     phone: { type: String, default: '+91 7479895668' },
     location: { type: String, default: 'India' },
-    github: { type: String, default: 'https://github.com' },
-    linkedin: { type: String, default: 'https://linkedin.com' },
+    github: { type: String, default: 'https://github.com/Sunshine9693' },
+    linkedin: { type: String, default: 'https://www.linkedin.com/in/sana-fatma-a00b49294/' },
   },
   sectionVisibility: {
     about: { type: Boolean, default: true },

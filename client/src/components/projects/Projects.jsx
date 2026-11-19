@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, ArrowUpRight, ExternalLink, Mic, CheckCircle2, Clock, X, Info } from 'lucide-react';
+import { ExternalLink, CheckCircle2, Clock, X } from 'lucide-react';
 import { Github } from '../common/Icons';
 import { useDialogBehavior } from '../../hooks/useDialogBehavior';
 
@@ -18,29 +18,29 @@ export const Projects = ({ projectsData }) => {
       status: 'Ongoing',
       category: 'Artificial Intelligence & Full-Stack',
       featured: true,
-      description: 'A personalized AI voice assistant engineered with React.js, Node.js, Express.js, MongoDB, and LLM APIs for conversational task automation.',
+      description: "A voice assistant for spoken questions, notes, reminders, and weather updates.",
       longDescription: 'AURA is Sana Fatma’s flagship exploration into AI voice interfaces. Designed as a full-stack web application, it supports natural conversational prompting, speech-to-text processing, notes, reminders, weather queries, and persistent user preference storage in MongoDB.',
       technologies: ['React.js', 'Vite', 'Tailwind CSS', 'Node.js', 'Express.js', 'MongoDB', 'LLM API', 'Axios', 'Web Speech API'],
       features: [
-        'Personalized natural language conversational interaction with AI',
-        'Voice-based task interaction and speech synthesis playback',
-        'Built-in modules for notes, reminders, weather updates, and information retrieval',
-        'REST APIs connecting frontend and LLM backend via Axios',
-        'MongoDB persistent database storage for user preferences and history',
-        'Responsive interface built with React.js, Vite, and Tailwind CSS'
+        "Spoken questions and responses",
+        "Notes, reminders, and weather updates",
+        "React frontend connected to Express APIs",
+        "Saved preferences and conversation history",
+        "MongoDB storage",
+        "Responsive React interface"
       ],
       plannedFeatures: [
-        'Future multilingual voice translation module',
-        'Direct calendar and email workflow integrations',
-        'Smart-home device triggers via IoT webhooks'
+        "Multilingual voice support",
+        "Email and calendar integration",
+        "Smart-home controls"
       ],
       architecture: [
-        'Frontend: React.js + Vite + Tailwind CSS with Web Speech recognition and synthesis',
-        'Backend: Express.js REST server handling LLM prompt grounding and tool execution',
-        'Database: MongoDB Atlas storing notes, reminders, and user state',
-        'Client-Server: Secure Axios HTTP communication with JWT session tokens'
+        "React handles voice input and displays responses.",
+        "Express sends requests to the language model API.",
+        "MongoDB stores notes, reminders, and preferences.",
+        "Axios connects the frontend to the backend."
       ],
-      githubUrl: 'https://github.com/sanathesunshine',
+      githubUrl: 'https://github.com/Sunshine9693',
       liveUrl: '',
       imageUrl: '/images/hero.png'
     },
@@ -52,25 +52,25 @@ export const Projects = ({ projectsData }) => {
       status: 'Ongoing',
       category: 'Frontend & E-Commerce',
       featured: false,
-      description: 'Developing the frontend of a full-stack footwear e-commerce application with product catalogs, cart, wishlist, and login flows.',
-      longDescription: 'SnapShoes offers an interactive online shopping portal with modern filtering, interactive product showcases, wishlist saving, and streamlined checkout UI flows.',
+      description: "I'm building a shoe-shopping interface with product listings, a cart, a wishlist, and sign-in pages.",
+      longDescription: "SnapShoes is an ongoing React project. My focus is the frontend: browsing and filtering products, managing a cart and wishlist, and building the account and checkout screens.",
       technologies: ['React.js', 'JavaScript (ES6+)', 'Tailwind CSS', 'Responsive UI'],
       features: [
-        'Dynamic product listing and detailed single-item views',
-        'Interactive shopping cart calculation and wishlist toggling',
-        'User login and account registration interface flows',
-        'Fluid responsive layout spanning mobile, tablet, and widescreen monitors'
+        "Product listings and detail pages",
+        "Shopping cart and wishlist",
+        "Sign-in and registration screens",
+        "Responsive layouts for phones and desktops"
       ],
       plannedFeatures: [
-        'Integrated payment gateway checkout',
-        'Order tracking dashboard and inventory webhook hooks'
+        "Payment integration",
+        "Order tracking and inventory updates"
       ],
       architecture: [
-        'Modular React components for catalog, cart, and authentication',
-        'Local state management for cart synchronization across views',
-        'Tailwind CSS design system with custom brand color tokens'
+        "React components for products, cart, and account screens.",
+        "Shared state keeps the cart in sync across pages.",
+        "Tailwind CSS handles the responsive layouts."
       ],
-      githubUrl: 'https://github.com/sanathesunshine',
+      githubUrl: 'https://github.com/Sunshine9693',
       liveUrl: '',
       imageUrl: '/images/hero.png'
     },
@@ -82,80 +82,80 @@ export const Projects = ({ projectsData }) => {
       status: 'Completed',
       category: 'Database & Systems',
       featured: false,
-      description: 'A database-driven allocation system replacing manual room assignments with automated constraint-based allocation logic.',
-      longDescription: 'Developed collaboratively at MANUU, this application automates the university hostel allotment workflow, providing a student application portal and an administrative dashboard.',
+      description: "A group project that assigns hostel rooms using student applications, available capacity, and allocation rules.",
+      longDescription: "Built with a team at MANUU, this project brings student applications and hostel room allocation into one system. Students can apply for rooms, and administrators can review and manage allotments.",
       technologies: ['HTML5', 'CSS3', 'JavaScript', 'Database Integration', 'Algorithmic Allocation Logic'],
       features: [
-        'Student application workflow with academic verification checks',
-        'Comprehensive administrative management dashboard for seat allotment',
-        'Frontend and database integration automating seat assignment',
-        'Constraint-based allocation logic designed to maintain transparency and fairness'
+        "Student applications and eligibility checks",
+        "Dashboard for room allotments",
+        "Connected application forms and database",
+        "Room assignments based on allocation rules"
       ],
       plannedFeatures: [
-        'Automated SMS notifications for selected room allocations'
+        "SMS notifications for room assignments"
       ],
       architecture: [
-        'Frontend UI for student applications and admin status review',
-        'Relational database schema storing student criteria, room capacity, and quotas',
-        'Deterministic rule engine prioritizing allocations according to college guidelines'
+        "Students apply through a web form.",
+        "A database stores applications and room availability.",
+        "Allocation rules determine room assignments."
       ],
-      githubUrl: 'https://github.com/sanathesunshine',
+      githubUrl: 'https://github.com/Sunshine9693',
       liveUrl: '',
       imageUrl: '/images/hero.png'
     },
     {
       id: 'task-management-system',
       title: 'Intelligent Task Management System',
-      subtitle: 'Modular To-Do & Productivity Application',
+      subtitle: "Task list with priorities",
       type: 'Personal Project',
       status: 'Completed',
       category: 'Web Application',
       featured: false,
-      description: 'A streamlined task management web application with dynamic priority sorting, real-time DOM updates, and browser local storage persistence.',
-      longDescription: 'Built with pure vanilla JavaScript to demonstrate strong core DOM manipulation and modular programming without heavy framework overhead.',
+      description: "A JavaScript task manager that sorts tasks by priority and saves them in the browser.",
+      longDescription: "I built this task manager with JavaScript, HTML, and CSS to practise DOM updates and local storage. Tasks can be organised by priority and remain saved after the page is closed.",
       technologies: ['Vanilla JavaScript (ES6+)', 'HTML5', 'CSS3', 'Local Storage API'],
       features: [
-        'Dynamic task prioritization (Urgent, High, Normal)',
-        'Instant real-time UI updates with zero page reloads',
-        'Persistent state stored securely in browser LocalStorage',
-        'Modular, maintainable code architecture with decoupled modules'
+        "Urgent, high, and normal priorities",
+        "Updates without reloading the page",
+        "Tasks saved in browser local storage",
+        "Separate code for data, display, and events"
       ],
       plannedFeatures: [
-        'Custom task category tags and deadline notifications'
+        "Task categories and deadline reminders"
       ],
       architecture: [
-        'Modular JS pattern separating Data Store, UI Renderer, and Event Listeners',
-        'LocalStorage synchronization hook on every create, edit, or delete action'
+        "JavaScript handles tasks, page updates, and user actions.",
+        "Local storage saves changes when tasks are added, edited, or removed."
       ],
-      githubUrl: 'https://github.com/sanathesunshine',
+      githubUrl: 'https://github.com/Sunshine9693',
       liveUrl: '',
       imageUrl: '/images/hero.png'
     },
     {
       id: 'music-player-spotify-clone',
       title: 'User Interaction-Based Music Player',
-      subtitle: 'Audio Interface & Spotify Clone',
+      subtitle: "Web music player",
       type: 'Personal Project',
       status: 'Completed',
       category: 'Audio & Interactive UI',
       featured: false,
-      description: 'An interactive web music player featuring a custom seek bar, playlist controls, and real-time audio playback feedback.',
-      longDescription: 'Engineered to study ergonomic user interaction patterns and audio DOM events, implementing smooth scrub bars, volume controls, and track queues.',
+      description: "A browser music player with playlists, track seeking, and volume controls.",
+      longDescription: "I built this player to practise the HTML audio API and JavaScript events. It includes a seek bar, track queue, playback status, and volume controls.",
       technologies: ['HTML5 Audio API', 'CSS3 Animations', 'JavaScript ES6+', 'Event Handling'],
       features: [
-        'Custom interactive seek bar with smooth scrubbing and time stamps',
-        'Dynamic playlist management and track queueing',
-        'Real-time audio feedback, playing states, and volume controls',
-        'Responsive navigation and playback controls for mobile devices'
+        "Seek bar with playback time",
+        "Playlists and a track queue",
+        "Playback status and volume controls",
+        "Controls that work on mobile"
       ],
       plannedFeatures: [
-        'Audio visualizer canvas frequencies and lyric synchronization'
+        "Audio visualiser and synced lyrics"
       ],
       architecture: [
-        'HTML5 Audio API event listeners (timeupdate, loadedmetadata, ended)',
-        'CSS transition timeline with dynamic width calculations'
+        "HTML audio events track playback and song changes.",
+        "JavaScript updates the seek bar and playback controls."
       ],
-      githubUrl: 'https://github.com/sanathesunshine',
+      githubUrl: 'https://github.com/Sunshine9693',
       liveUrl: '',
       imageUrl: '/images/hero.png'
     }
@@ -185,9 +185,7 @@ export const Projects = ({ projectsData }) => {
     : [];
   const auraTechnologies = Array.isArray(auraProject?.technologies) ? auraProject.technologies : [];
   const auraFeatures = Array.isArray(auraProject?.features) ? auraProject.features : [];
-  const auraPlannedFeatures = Array.isArray(auraProject?.plannedFeatures)
-    ? auraProject.plannedFeatures
-    : [];
+
 
   return (
     <section id="projects" className="relative py-24 px-4 sm:px-6 lg:px-8 border-t border-midnight-border bg-midnight-surface/30">
@@ -260,7 +258,7 @@ export const Projects = ({ projectsData }) => {
               <div className="lg:col-span-7 space-y-5">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="px-3 py-1 rounded-full bg-cyan/15 border border-cyan/40 text-cyan text-xs font-mono-tech font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Mic className="w-3.5 h-3.5 text-violet" /> Featured project
+                    Featured project
                   </span>
                   <span className="px-3 py-1 rounded-full bg-midnight-elevated border border-midnight-border text-slate-muted text-xs font-mono-tech uppercase">
                     {auraProject.type}
@@ -297,17 +295,6 @@ export const Projects = ({ projectsData }) => {
                         </li>
                       ))}
                     </ul>
-                  </div>
-                )}
-
-                {/* Future Possibilities Note */}
-                {auraPlannedFeatures.length > 0 && (
-                  <div className="p-3 rounded-xl bg-midnight/60 border border-midnight-border flex items-start gap-2.5 text-xs font-sans text-slate-muted">
-                    <Info className="w-4 h-4 text-violet shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-slate-main font-mono-tech">Planned additions:</strong>{' '}
-                      {auraPlannedFeatures.join(', ')}.
-                    </span>
                   </div>
                 )}
 
@@ -349,56 +336,14 @@ export const Projects = ({ projectsData }) => {
                 </div>
               </div>
 
-              {/* Right Column (5 cols): Architecture Visualizer */}
-              <div className="lg:col-span-5 flex flex-col justify-center">
-                <div className="bg-midnight/90 rounded-2xl border border-midnight-border p-6 space-y-6 shadow-inner">
-                  <div className="flex items-center justify-between border-b border-midnight-border pb-3 text-xs font-mono-tech text-slate-muted">
-                    <span className="flex items-center gap-2 text-cyan">
-                      <span className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
-                      AURA Architecture
-                    </span>
-                    <span className="text-[10px] uppercase">Node • Express • Mongo</span>
-                  </div>
-
-                  {/* Equalizer Frequency Visualizer */}
-                  <div className="bg-midnight-elevated/70 rounded-xl p-4 border border-midnight-border flex flex-col items-center justify-center space-y-3">
-                    <div className="flex items-end justify-center gap-1.5 h-16 w-full px-4">
-                      {[40, 65, 85, 30, 95, 55, 75, 45, 90, 60, 35, 80, 50, 70, 40].map((h, i) => (
-                        <div
-                          key={i}
-                          style={{ height: `${h}%` }}
-                          className={`w-1.5 rounded-full ${
-                            i % 3 === 0
-                              ? 'bg-cyan animate-pulse'
-                              : i % 2 === 0
-                              ? 'bg-violet'
-                              : 'bg-indigo'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="font-mono-tech text-[10px] text-slate-muted uppercase tracking-widest">
-                      Voice Signal Processing & Prompt Pipeline
-                    </span>
-                  </div>
-
-                  {/* Architecture Stack */}
-                  <div className="space-y-2 text-xs font-mono-tech">
-                    <div className="p-2.5 rounded-lg bg-midnight-card border border-midnight-border flex justify-between items-center">
-                      <span className="text-slate-main">1. UI & Speech Engine</span>
-                      <span className="text-cyan">React + Vite + Speech API</span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-midnight-card border border-midnight-border flex justify-between items-center">
-                      <span className="text-slate-main">2. API Router & Intelligence</span>
-                      <span className="text-violet">Express.js + LLM API</span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-midnight-card border border-midnight-border flex justify-between items-center">
-                      <span className="text-slate-main">3. Persistent State</span>
-                      <span className="text-indigo">MongoDB Atlas</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <aside className="lg:col-span-5 rounded-2xl border border-midnight-border bg-midnight-elevated/50 p-6 space-y-4">
+                <h4 className="text-lg font-semibold text-slate-main">How it works</h4>
+                <ul className="space-y-3 text-sm text-slate-muted leading-relaxed">
+                  {(Array.isArray(auraProject.architecture) ? auraProject.architecture : []).slice(0, 3).map((detail, index) => (
+                    <li key={index} className="flex items-start gap-2"><span className="text-cyan" aria-hidden="true">•</span><span>{detail}</span></li>
+                  ))}
+                </ul>
+              </aside>
             </div>
           </div>
         </div>
@@ -547,7 +492,7 @@ export const Projects = ({ projectsData }) => {
             {Array.isArray(selectedProject.architecture) && selectedProject.architecture.length > 0 && (
               <div className="space-y-2">
                 <span className="font-mono-tech text-xs text-slate-main uppercase tracking-widest font-bold">
-                  System Architecture
+                  How it works
                 </span>
                 <div className="space-y-2">
                   {selectedProject.architecture.map((item, idx) => (
@@ -563,7 +508,7 @@ export const Projects = ({ projectsData }) => {
             {/* Features List */}
             <div className="space-y-2">
               <span className="font-mono-tech text-xs text-slate-main uppercase tracking-widest font-bold">
-                Documented Features & Capabilities
+                Features
               </span>
               <ul className="space-y-2">
                 {(Array.isArray(selectedProject.features) ? selectedProject.features : []).map((feat, idx) => (
@@ -579,7 +524,7 @@ export const Projects = ({ projectsData }) => {
             {Array.isArray(selectedProject.plannedFeatures) && selectedProject.plannedFeatures.length > 0 && (
               <div className="p-4 rounded-xl bg-midnight border border-midnight-border text-xs font-sans text-slate-muted">
                 <span className="font-mono-tech text-slate-main font-bold block mb-1">
-                  Future Planned Possibilities:
+                  Planned additions
                 </span>
                 {selectedProject.plannedFeatures.join(' • ')}
               </div>
@@ -588,7 +533,7 @@ export const Projects = ({ projectsData }) => {
             {/* Technologies */}
             <div className="space-y-2 pt-2">
               <span className="font-mono-tech text-xs text-slate-main uppercase tracking-widest font-bold">
-                Technology Stack
+                Built with
               </span>
               <div className="flex flex-wrap gap-2">
                 {(Array.isArray(selectedProject.technologies) ? selectedProject.technologies : []).map((tech, idx) => (
@@ -613,7 +558,7 @@ export const Projects = ({ projectsData }) => {
                     className="btn-primary px-5 py-2.5 rounded-xl text-xs font-mono-tech font-bold uppercase flex items-center gap-2 shadow-glow-cyan"
                   >
                     <Github className="w-4 h-4" />
-                    <span>View Repository</span>
+                    <span>View code</span>
                   </a>
                 )}
                 {selectedProject.liveUrl && (

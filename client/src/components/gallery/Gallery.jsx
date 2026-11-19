@@ -64,7 +64,7 @@ export const Gallery = ({ certificatesData, galleryData }) => {
       date: 'August 2026',
       credentialUrl: '',
       fileUrl: '/certificates/ibm_genai.pdf',
-      description: 'Specialized credential covering generative model architectures, prompting techniques, LLM applications, and ethical AI development.',
+      description: "Coursework in generative AI, prompting, language models, and responsible use.",
       verified: true,
     },
     {
@@ -74,7 +74,7 @@ export const Gallery = ({ certificatesData, galleryData }) => {
       date: 'August 2026',
       credentialUrl: '',
       fileUrl: '/certificates/ibm_github.pdf',
-      description: 'Comprehensive certification on collaborative version control, branch workflows, merge conflict resolution, and open-source contribution patterns.',
+      description: "Coursework in Git, branches, collaboration, and resolving merge conflicts.",
       verified: true,
     },
     {
@@ -84,7 +84,7 @@ export const Gallery = ({ certificatesData, galleryData }) => {
       date: 'September 2026',
       credentialUrl: '',
       fileUrl: '/certificates/neo4j_cert.pdf',
-      description: 'Professional validation on graph database theory, Cypher querying language, node-relationship traversal, and connected data modeling.',
+      description: "Coursework in graph databases, Cypher queries, and data modelling.",
       verified: true,
     },
   ];
