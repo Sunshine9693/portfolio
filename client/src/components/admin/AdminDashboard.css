@@ -1,9 +1,9 @@
 .admin-dashboard :is(input, textarea).bg-midnight-elevated {
-  color: #172b43;
+  color: #3f303b;
 }
 
 .admin-dashboard :is(input, textarea).bg-midnight-elevated::placeholder {
-  color: #526174;
+  color: #725e6b;
   opacity: 1;
 }
 

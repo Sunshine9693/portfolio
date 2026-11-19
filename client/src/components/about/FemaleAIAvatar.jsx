@@ -85,7 +85,7 @@ export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText, spee
         {/* Outer Circular Frame */}
         <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-full bg-gradient-to-b from-midnight-card via-midnight-surface to-midnight border-2 border-cyan/50 shadow-card-dev-hover overflow-hidden flex items-center justify-center">
           {/* Futuristic Background grid inside circular portrait */}
-          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#38BDF8_1px,transparent_1px)] [background-size:12px_12px]" />
+          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#A34F68_1px,transparent_1px)] [background-size:12px_12px]" />
 
           {/* SVG Character Illustration */}
           <svg
@@ -102,15 +102,15 @@ export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText, spee
               <linearGradient id="hairGrad" x1="60" y1="20" x2="140" y2="160" gradientUnits="userSpaceOnUse">
                 <stop offset="0%" stopColor="#1E293B" />
                 <stop offset="60%" stopColor="#0F172A" />
-                <stop offset="100%" stopColor="#38BDF8" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="#A34F68" stopOpacity="0.4" />
               </linearGradient>
               <linearGradient id="suitGrad" x1="100" y1="130" x2="100" y2="200" gradientUnits="userSpaceOnUse">
                 <stop offset="0%" stopColor="#1E293B" />
                 <stop offset="100%" stopColor="#0F172A" />
               </linearGradient>
               <linearGradient id="cyanGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#38BDF8" />
-                <stop offset="100%" stopColor="#818CF8" />
+                <stop offset="0%" stopColor="#A34F68" />
+                <stop offset="100%" stopColor="#79628A" />
               </linearGradient>
             </defs>
 
@@ -128,13 +128,13 @@ export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText, spee
             <path
               d="M60 175 C60 145 75 135 100 135 C125 135 140 145 140 175 L155 200 L45 200 Z"
               fill="url(#suitGrad)"
-              stroke="#38BDF8"
+              stroke="#A34F68"
               strokeWidth="1.5"
               strokeOpacity="0.5"
             />
             {/* Tech Lapel Accents */}
-            <path d="M85 140 L100 165 L115 140" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="100" cy="155" r="3" fill="#A78BFA" />
+            <path d="M85 140 L100 165 L115 140" stroke="#A34F68" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="100" cy="155" r="3" fill="#AA829F" />
 
             {/* Neck */}
             <rect x="88" y="115" width="24" height="24" rx="4" fill="url(#skinGrad)" />
@@ -160,16 +160,16 @@ export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText, spee
             {/* Futuristic Headset / Communicator */}
             <path
               d="M66 85 C66 70 70 50 100 48"
-              stroke="#38BDF8"
+              stroke="#A34F68"
               strokeWidth="2.5"
               strokeLinecap="round"
             />
             {/* Glowing Earpiece */}
-            <circle cx="66" cy="85" r="7" fill="#151D2E" stroke="#38BDF8" strokeWidth="2" />
-            <circle cx="66" cy="85" r="3.5" fill="#38BDF8" className={isSpeaking ? 'animate-ping' : ''} />
+            <circle cx="66" cy="85" r="7" fill="#151D2E" stroke="#A34F68" strokeWidth="2" />
+            <circle cx="66" cy="85" r="3.5" fill="#A34F68" className={isSpeaking ? 'animate-ping' : ''} />
             {/* Small microphone boom */}
-            <path d="M66 88 C70 98 80 105 88 105" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="89" cy="105" r="2.5" fill="#A78BFA" />
+            <path d="M66 88 C70 98 80 105 88 105" stroke="#A34F68" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="89" cy="105" r="2.5" fill="#AA829F" />
 
             {/* Eyebrows */}
             <path d="M78 72 C83 69 90 70 93 73" stroke="#475569" strokeWidth="1.8" strokeLinecap="round" />
@@ -180,13 +180,13 @@ export const FemaleAIAvatar = ({ isSpeaking, isPaused, currentSentenceText, spee
               {/* Left Eye */}
               <ellipse cx="86" cy="82" rx="5" ry="6" fill="#0F172A" />
               <circle cx="84.5" cy="80.5" r="2" fill="#FFFFFF" />
-              <circle cx="87.5" cy="83.5" r="1" fill="#38BDF8" />
+              <circle cx="87.5" cy="83.5" r="1" fill="#A34F68" />
               <path d="M80 79 C84 76 89 77 92 79" stroke="#0F172A" strokeWidth="1.5" strokeLinecap="round" />
 
               {/* Right Eye */}
               <ellipse cx="114" cy="82" rx="5" ry="6" fill="#0F172A" />
               <circle cx="112.5" cy="80.5" r="2" fill="#FFFFFF" />
-              <circle cx="115.5" cy="83.5" r="1" fill="#38BDF8" />
+              <circle cx="115.5" cy="83.5" r="1" fill="#A34F68" />
               <path d="M108 79 C111 76 116 77 120 79" stroke="#0F172A" strokeWidth="1.5" strokeLinecap="round" />
             </g>
 
