@@ -1,261 +1,183 @@
-# ✨ Dynamic Portfolio Website
+# Sana Fatma's Portfolio
 
-A modern, responsive, and dynamic personal portfolio website built to showcase my skills, education, certifications, experience, projects, and achievements in an interactive way.
+This is the code for my personal portfolio. It brings together my projects, education, internships, certificates, and contact details. An admin dashboard lets me update the content without editing the source files.
 
-The portfolio includes a public site, an admin dashboard for managing content, an AI portfolio assistant with a verified offline fallback, contact-form storage, and managed media uploads.
+[View the portfolio](https://sanafatma-portfolio.vercel.app) · [LinkedIn](https://www.linkedin.com/in/sana-fatma-a00b49294/) · [GitHub](https://github.com/Sunshine9693)
 
-## 🚀 Features
+## What's included
 
-- **Responsive Design** — Works across desktop, tablet, and mobile devices.
-- **About Me** — Introduces my background, interests, and career goals, with optional narrated introduction.
-- **Education** — Showcases my academic qualifications.
-- **Skills** — Highlights technical skills and areas of expertise.
-- **Experience** — Displays internships, training, and professional experience.
-- **Projects** — Presents my projects and technical work with detailed project views.
-- **Certificates & Gallery** — Supports image, video, and PDF previews for verified certificates and media.
-- **Dynamic Content** — Loads portfolio content from MongoDB with a local cached fallback.
-- **Admin Panel** — Provides authenticated controls for editing sections and managing uploads.
-- **AI Portfolio Assistant** — Answers questions using a grounded knowledge base and optional Gemini/OpenAI inference.
-- **Resume** — Allows visitors to view or download my resume.
-- **Contact Form** — Stores validated inquiries for review in the admin inbox.
+- Project cards and detail views with a short challenge and result for each project.
+- Education, skills, internship experience, and a downloadable resume.
+- A photo gallery and previews for image or PDF certificates.
+- An optional spoken introduction and a portfolio Q&A assistant.
+- A contact form that stores messages in the admin inbox.
+- A warm rose-and-plum theme, responsive layouts, and animations that respect reduced-motion preferences.
 
-## 🛠️ Tech Stack
+The admin portal at `/admin` supports adding and editing projects, selecting a featured project, uploading photos and certificates, editing profile content, reading inquiries, and changing the account password.
 
-**Frontend**
-- React 19
-- Vite
-- Tailwind CSS
-- React Router
-- Axios
+## Stack and hosting
 
-**Backend**
-- Node.js
-- Express.js
-- MongoDB with Mongoose
-- JWT authentication
-- Multer managed uploads
+| Part | Tools |
+| --- | --- |
+| Frontend | React, Vite, Tailwind CSS, React Router, Axios |
+| API | Node.js, Express, Mongoose |
+| Storage | MongoDB for content and accounts; GridFS for uploaded files |
+| Authentication | Password hashing with bcrypt and JWT admin sessions |
+| Hosting | Vercel frontend and Render backend |
+| Optional AI providers | Gemini, OpenAI, OpenRouter |
 
-**Optional AI**
-- Google Gemini API
-- OpenAI API
+Production requests use the portfolio's own domain. Vercel forwards `/api/*` and `/uploads/*` to the Render backend, then serves the React app for other routes.
 
-## 📁 Project Structure
+## Run locally
 
-```text
-portfolio/
-├── client/                 # React frontend
-│   ├── public/             # Static assets and resume
-│   └── src/                # Components, contexts, hooks, services
-├── server/                 # Express API
-│   ├── config/             # Environment and database setup
-│   ├── controllers/        # Content, auth, contact, and AI handlers
-│   ├── data/               # Seed content and local admin fallback
-│   ├── middleware/         # Auth and upload validation
-│   ├── models/             # Mongoose schemas
-│   ├── routes/             # API routes
-│   ├── scripts/            # Seeding and admin setup
-│   └── uploads/            # Local managed uploads (not committed)
-├── .gitignore
-├── package.json
-├── vercel.json
-└── README.md
-```
+You'll need Node.js **22.12 or newer**, npm, and a local MongoDB instance or MongoDB Atlas connection.
 
-## ⚙️ Getting Started
-
-### Prerequisites
-
-- Node.js 22+ (required by the current Vite version)
-- npm
-- MongoDB (local MongoDB or a MongoDB Atlas connection string)
-- Optional: a Gemini or OpenAI API key for live AI responses
-
-### 1. Clone the Repository
+### 1. Clone and install
 
 ```bash
 git clone https://github.com/Sunshine9693/portfolio.git
 cd portfolio
-```
-
-### 2. Install Dependencies
-
-```bash
 npm run install:all
 ```
 
-### 3. Configure Environment Variables
+### 2. Configure the backend
 
-Create the backend environment file:
+Copy `server/.env.example` to `server/.env`.
 
 ```bash
 cp server/.env.example server/.env
 ```
 
-PowerShell:
+In PowerShell:
 
 ```powershell
-Copy-Item server\.env.example server\.env
+Copy-Item server/.env.example server/.env
 ```
 
-Set at least:
+Set your MongoDB connection string and choose your own authentication secrets:
 
 ```dotenv
 PORT=5000
 NODE_ENV=development
 MONGODB_URI=mongodb://127.0.0.1:27017/sana_portfolio
 JWT_SECRET=replace_with_a_long_random_secret
-ADMIN_SETUP_TOKEN=replace_with_a_one_time_setup_token
+ADMIN_SETUP_TOKEN=replace_with_a_separate_random_setup_key
 CLIENT_URL=http://localhost:5173
 ```
 
-The frontend works without an environment file when using the Vite development proxy. For a separately deployed frontend, create `client/.env`:
+An AI provider key is optional. Without one, the assistant uses built-in answers based on portfolio information.
 
-```dotenv
-VITE_API_BASE_URL=https://your-backend.example.com
-```
+### 3. Start both services
 
-Leave `VITE_API_BASE_URL` empty when the frontend and API share an origin.
-
-### 4. Seed Portfolio Content
-
-The seed script uses `server/data/activePortfolioData.json` when present, falling back to the built-in default content.
-
-```bash
-npm --prefix server run seed
-```
-
-The script does nothing if a portfolio document already exists. To replace existing content intentionally:
-
-```bash
-npm --prefix server run seed -- --force
-```
-
-### 5. Run Locally
-
-Start the backend:
+In one terminal:
 
 ```bash
 npm run dev:server
 ```
 
-Start the frontend in a second terminal:
+In another:
 
 ```bash
 npm run dev:client
 ```
 
-Open `http://localhost:5173`. Vite proxies `/api` and `/uploads` to the backend on port 5000.
+Open [localhost:5173](http://localhost:5173). Vite forwards local API and upload requests to port 5000, so a frontend environment file is not normally needed.
 
-The backend also has a local cached-content fallback, so the public portfolio can be inspected when MongoDB is temporarily unavailable. Admin writes require a working database or the file-based admin fallback.
+To seed MongoDB with the saved portfolio content:
 
-### 6. Create the Admin Account
-
-Open `http://localhost:5173/admin` and use the secure initial setup form with the `ADMIN_SETUP_TOKEN` from `server/.env`. Change the token and JWT secret before deploying.
-
-## 🔑 Environment Variables
-
-### Backend (`server/.env`)
-
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `PORT` | No | API port. Defaults to `5000`. |
-| `NODE_ENV` | No | Use `production` when deployed. Enables stricter secret checks. |
-| `MONGODB_URI` | Recommended | MongoDB or MongoDB Atlas connection string. |
-| `JWT_SECRET` | Production | Signs admin sessions. Use a long random value. |
-| `ADMIN_SETUP_TOKEN` | Production | Allows one-time initial admin creation. |
-| `CLIENT_URL` | Production | Exact frontend origin allowed by CORS, without a trailing slash. |
-| `UPLOADS_DIR` | Production | Persistent directory for managed uploads. |
-| `OPENROUTER_API_KEY` | No | Enables live responses through OpenRouter. |
-| `OPENROUTER_MODEL` | No | OpenRouter model ID. Defaults to `openai/gpt-4o-mini`. |
-| `GEMINI_API_KEY` | No | Enables live Gemini responses. |
-| `GEMINI_MODEL` | No | Gemini model ID. Defaults to `gemini-3.8-flash`. |
-| `OPENAI_API_KEY` | No | Optional OpenAI fallback. |
-| `OPENAI_MODEL` | No | OpenAI model ID. Defaults to `gpt-4o-mini`. |
-
-### Frontend (`client/.env`)
-
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `VITE_API_BASE_URL` | No | Backend origin for separate deployments. Leave blank for same-origin/proxy setups. |
-
-## 🤖 AI Assistant Behavior
-
-The assistant is grounded in Sana's verified portfolio information. If no AI key is configured, or the external provider is temporarily unavailable, the API returns a built-in verified response with an `infoNotice` instead of failing the chat.
-
-Configure a live provider with any one of the following. Providers are tried in this order: Gemini, OpenAI, OpenRouter.
-
-```dotenv
-OPENROUTER_API_KEY=your_key_here
-OPENROUTER_MODEL=openai/gpt-4o-mini
+```bash
+npm --prefix server run seed
 ```
 
-```dotenv
-GEMINI_API_KEY=your_key_here
-GEMINI_MODEL=gemini-3.8-flash
+The seed script leaves existing portfolio documents unchanged.
+
+### 4. Set up the administrator
+
+Open `/admin` and select **Initial Setup**. Enter the setup key from your backend environment, then choose your account details. Initial setup is available only before an admin account exists.
+
+After signing in, use **Change password** to set a new password. It requires the current password and signs out other sessions.
+
+## Configuration
+
+| Variable | Purpose |
+| --- | --- |
+| `PORT` | Backend port; defaults to 5000 locally. The hosting platform can supply its own value. |
+| `NODE_ENV` | Set to `production` on the deployed backend. |
+| `MONGODB_URI` | Database connection string. Required for persistent production content, accounts, and uploads. |
+| `JWT_SECRET` | Secret used to sign admin sessions; required in production. |
+| `ADMIN_SETUP_TOKEN` | Server-owner key for initial account setup and account recovery. Keep it private. |
+| `CLIENT_URL` | Allowed frontend origin or comma-separated origins for CORS. Wildcards are supported. |
+| `OPENROUTER_API_KEY` / `OPENROUTER_MODEL` | Optional OpenRouter credentials and model selection. |
+| `GEMINI_API_KEY` / `GEMINI_MODEL` | Optional Gemini credentials and model selection. |
+| `OPENAI_API_KEY` / `OPENAI_MODEL` | Optional OpenAI credentials and model selection. |
+| `UPLOADS_DIR` | Optional local or temporary upload directory. Persistent media uses GridFS when MongoDB is connected. |
+
+`VITE_API_BASE_URL` can override the backend origin **during local development only**. Production builds use relative URLs and the rewrites in `vercel.json`; they do not use this variable.
+
+## Uploads and storage
+
+Photo uploads accept **JPEG, PNG, and WebP**. Certificates and general uploads also accept **PDF**. The limit is **4 MB per file**. The server checks the extension, MIME type, and file signature.
+
+Uploaded files are stored in MongoDB GridFS and served through `/uploads/:filename`, so they survive backend restarts and redeploys without a persistent disk. Portfolio records store the file URLs.
+
+For local development without MongoDB, the server retains a disk and cached-content fallback. Production uploads and content writes fail when database storage is unavailable.
+
+See [the backend storage notes](server/README.md) for more detail.
+
+## Deployment
+
+### Backend: Render
+
+The [Render Blueprint](render.yaml) configures a Node.js web service with:
+
+- Root directory: `server`
+- Build command: `npm install`
+- Start command: `npm start`
+- Health check: `/api/health`
+
+Import the Blueprint in Render and supply the database connection string, authentication secrets, and any optional AI provider key. Set `CLIENT_URL` to the frontend origin. If using your own frontend domain, update the Blueprint's origin list too.
+
+The current backend is [portfolio-backend-v8mm.onrender.com](https://portfolio-backend-v8mm.onrender.com/api/health).
+
+### Frontend: Vercel
+
+Import the repository with its root directory unchanged. [vercel.json](vercel.json) defines dependency installation, the frontend build, and the `client/dist` output directory.
+
+If deploying a fork or a different backend, change **both** the API and upload rewrite destinations in `vercel.json` to your backend URL before deploying. A production `VITE_API_BASE_URL` value will not change those routes.
+
+The current frontend is [sanafatma-portfolio.vercel.app](https://sanafatma-portfolio.vercel.app).
+
+## Checks
+
+Build the frontend:
+
+```bash
+npm run build
 ```
 
-Model availability changes over time. If a provider retires the configured model, update the matching model variable to one available to your API key. OpenRouter model IDs are listed at <https://openrouter.ai/models>.
+Run the password-change and session checks:
 
-## 🖼️ Uploads and Persistent Storage
+```bash
+node --test server/tests/changePassword.test.js
+```
 
-The admin dashboard accepts managed image, video, and PDF uploads up to 15 MB. Uploads are validated by extension, MIME type, and file signature. SVG uploads are intentionally rejected.
+An optional [production smoke check](server/scripts/verifyProduction.mjs) tests sign-in, project saving, and media upload/retrieval/deletion. It requires `PORTFOLIO_API_URL`, `PORTFOLIO_SITE_URL`, `PORTFOLIO_ADMIN_USERNAME`, and `PORTFOLIO_ADMIN_PASSWORD` in the environment. It saves the current project data unchanged and creates then deletes its own test uploads.
 
-Local uploads are written to `server/uploads/`, which is excluded from Git. On platforms with ephemeral filesystems, set `UPLOADS_DIR` to a mounted persistent volume, or uploads will disappear after a redeploy.
+## Repository layout
 
-## 🌐 Deployment
+```text
+client/
+  public/          Static images, certificates, and resume
+  src/             Public sections, admin views, hooks, and API client
+server/
+  controllers/     Content, authentication, contact, and assistant handlers
+  data/            Default content and seed data
+  models/          MongoDB schemas
+  services/        GridFS file storage
+  scripts/         Seed, admin setup, and smoke checks
+  tests/           Authentication regression checks
+render.yaml        Render backend configuration
+vercel.json        Vercel build settings and backend rewrites
+```
 
-### Frontend
-
-The included `vercel.json` builds `client/` and serves `client/dist/`. On Vercel:
-
-1. Import the repository.
-2. Set `VITE_API_BASE_URL` to the deployed backend origin.
-3. Deploy.
-
-### Backend
-
-#### Render (Blueprint)
-
-The repository includes `render.yaml`, which deploys `server/` as a Render web service.
-
-1. Push the repository to GitHub.
-2. In the [Render Dashboard](https://dashboard.render.com), choose **New → Blueprint** and select this repository.
-3. Enter the secret values when prompted:
-   - `MONGODB_URI`
-   - `JWT_SECRET`
-   - `ADMIN_SETUP_TOKEN`
-4. Deploy. The API is available at `https://<service-name>.onrender.com`; the health check is `/api/health`.
-5. Set `VITE_API_BASE_URL` on the Vercel frontend to the Render URL and redeploy it.
-
-The Blueprint uses the Free plan, so the API spins down after 15 minutes without traffic and takes about a minute to wake up. Free instances also have an ephemeral filesystem: set `UPLOADS_DIR` to a mounted persistent disk (paid plans only) if admin uploads must survive restarts.
-
-#### Vercel Functions
-
-`server/vercel.json` also allows deploying `server/` as a Vercel project. Uploads there are written to `/tmp/uploads` and do not persist.
-
-Then seed the production database once with `npm --prefix server run seed` (or `-- --force` when intentionally replacing content).
-
-## 🔒 Security
-
-- `.env` files are excluded from version control. Never commit real API keys, database credentials, authentication secrets, or passwords.
-- Rotate any database or API credential that has ever been shared in chat, logs, screenshots, or a public repository.
-- Use long, unique values for `JWT_SECRET` and `ADMIN_SETUP_TOKEN`.
-- Admin endpoints require a valid JWT; contact and authentication routes are rate limited.
-- Uploaded files are checked by type and signature before being stored.
-- `server/data/adminUser.json` and `server/uploads/` are excluded from Git.
-
-## 👩‍💻 Author
-
-**Sana Fatma**
-
-B.Tech — Computer Science and Engineering
-Maulana Azad National Urdu University
-
-- **GitHub:** [Sunshine9693](https://github.com/Sunshine9693)
-- **Portfolio Repository:** [Dynamic Portfolio](https://github.com/Sunshine9693/portfolio)
-
----
-
-⭐ If you find this project interesting, feel free to explore the repository and its features.
-
-*Built with curiosity, creativity, and continuous learning.*
+Environment files, local admin credentials, and local uploads are excluded from Git. Keep database credentials, API keys, and authentication secrets in environment variables.
