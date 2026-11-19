@@ -10,6 +10,7 @@ import api, { isApiCancel, resolveAssetUrl } from '../../services/api';
 import './AdminDashboard.css';
 import { ProjectEditor } from './ProjectEditor';
 import { ChangePassword } from './ChangePassword';
+import { withProjectStory } from '../../data/projectStories';
 
 export const AdminDashboard = () => {
   const { admin, token, isAuthenticated, isAuthLoading, login, setupAdmin, logout } = useAuth();
@@ -80,7 +81,7 @@ export const AdminDashboard = () => {
         : {}
     );
     setSkillsForm(Array.isArray(portfolioData.skills) ? portfolioData.skills : []);
-    setProjectsForm(Array.isArray(portfolioData.projects) ? portfolioData.projects : []);
+    setProjectsForm(Array.isArray(portfolioData.projects) ? portfolioData.projects.map(withProjectStory) : []);
   }, [portfolioData]);
 
   // Release the local preview URL when it is replaced or the view unmounts.

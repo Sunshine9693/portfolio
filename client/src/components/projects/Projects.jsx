@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ExternalLink, CheckCircle2, Clock, X } from 'lucide-react';
 import { Github } from '../common/Icons';
 import { useDialogBehavior } from '../../hooks/useDialogBehavior';
+import { withProjectStory } from '../../data/projectStories';
+import { ProjectStory } from './ProjectStory';
 
 export const Projects = ({ projectsData }) => {
   const [selectedProject, setSelectedProject] = useState(null);
@@ -161,7 +163,7 @@ export const Projects = ({ projectsData }) => {
     }
   ];
 
-  const projects = Array.isArray(projectsData) ? projectsData : defaultProjects;
+  const projects = (Array.isArray(projectsData) ? projectsData : defaultProjects).map(withProjectStory);
   const filterOptions = ['All', 'Personal Project', 'College Group Project', 'Ongoing', 'Completed'];
 
   const matchesActiveFilter = (project) => {
@@ -279,6 +281,7 @@ export const Projects = ({ projectsData }) => {
                 <p className="font-sans text-sm sm:text-base text-slate-muted leading-relaxed">
                   {auraProject.longDescription || auraProject.description || ''}
                 </p>
+                <ProjectStory project={auraProject} />
 
                 {/* Verified Resume Features */}
                 {auraFeatures.length > 0 && (
@@ -383,6 +386,7 @@ export const Projects = ({ projectsData }) => {
                 <p className="font-sans text-xs sm:text-sm text-slate-muted leading-relaxed mb-6">
                   {project.description}
                 </p>
+                <div className="mb-6"><ProjectStory project={project} /></div>
 
                 {/* Features Snippet */}
                 <div className="space-y-1.5 mb-6">
@@ -486,6 +490,7 @@ export const Projects = ({ projectsData }) => {
             <p className="font-sans text-sm sm:text-base text-slate-muted leading-relaxed">
               {selectedProject.longDescription || selectedProject.description}
             </p>
+            <ProjectStory project={selectedProject} />
 
             {/* Architecture Details if present */}
             {Array.isArray(selectedProject.architecture) && selectedProject.architecture.length > 0 && (

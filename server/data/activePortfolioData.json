@@ -265,7 +265,9 @@
       ],
       "githubUrl": "https://github.com/Sunshine9693/mine_project.git",
       "liveUrl": "https://mine-project-nu.vercel.app/",
-      "imageUrl": "/images/hero.png"
+      "imageUrl": "/images/hero.png",
+      "challenge": "Keeping each user's saved notes separate.",
+      "result": "Notes are stored with a user ID. The API scopes reading, editing, and deleting notes to the signed-in user."
     },
     {
       "id": "snapshoes-ecommerce",
@@ -300,7 +302,9 @@
       ],
       "githubUrl": "https://github.com/Sunshine9693/Snapshoes.git",
       "liveUrl": "",
-      "imageUrl": "/images/hero.png"
+      "imageUrl": "/images/hero.png",
+      "challenge": "Keeping cart quantities and totals consistent as items change.",
+      "result": "Shared React state tracks the cart, totals are calculated from its items, and local storage keeps the cart between visits."
     },
     {
       "id": "hostel-allocation-system",
@@ -335,7 +339,9 @@
       ],
       "githubUrl": "https://github.com/Sunshine9693",
       "liveUrl": "",
-      "imageUrl": "/images/hero.png"
+      "imageUrl": "/images/hero.png",
+      "challenge": "Connecting the application screens, backend APIs, and database.",
+      "result": "The project connects student applications and room-allotment data through a shared API and database workflow."
     },
     {
       "id": "task-management-system",
@@ -368,7 +374,9 @@
       ],
       "githubUrl": "https://github.com/Sunshine9693/Intelligent-Task-Management-System.git",
       "liveUrl": "",
-      "imageUrl": "/images/hero.png"
+      "imageUrl": "/images/hero.png",
+      "challenge": "Keeping tasks and their priorities after a page refresh.",
+      "result": "Tasks are saved in local storage, restored on load, and sorted by priority and due date."
     },
     {
       "id": "music-player-spotify-clone",
@@ -401,7 +409,9 @@
       ],
       "githubUrl": "https://github.com/Sunshine9693/Spotify-Clone.git",
       "liveUrl": "",
-      "imageUrl": "/images/hero.png"
+      "imageUrl": "/images/hero.png",
+      "challenge": "Keeping the seek bar and play/pause controls in sync with the audio.",
+      "result": "Audio events update the seek bar, and seeking or changing tracks updates the playback position and controls."
     }
   ],
   "internships": [

@@ -6,7 +6,7 @@ export function ProjectEditor({ projects, onChange, isSaving, onUpload }) {
   const update = (index, changes) => onChange(projects.map((project, current) => current === index ? { ...project, ...changes } : project));
   const addProject = () => onChange([...projects, {
     id: crypto.randomUUID(), title: 'New project', subtitle: '', type: 'Personal Project', status: 'Ongoing',
-    description: '', longDescription: '', technologies: [], features: [], plannedFeatures: [], githubUrl: '', liveUrl: '', imageUrl: '', featured: false,
+    description: '', longDescription: '', challenge: '', result: '', technologies: [], features: [], plannedFeatures: [], githubUrl: '', liveUrl: '', imageUrl: '', featured: false,
   }]);
   const textField = (project, index, key, label, multiline = false) => {
     const id = `project-${project.id || index}-${key}`;
@@ -40,6 +40,10 @@ export function ProjectEditor({ projects, onChange, isSaving, onUpload }) {
       </div>
       {textField(project, index, 'description', 'Short description', true)}
       {textField(project, index, 'longDescription', 'Project details', true)}
+      <div className="grid sm:grid-cols-2 gap-4">
+        {textField(project, index, 'challenge', 'One concrete challenge', true)}
+        {textField(project, index, 'result', 'Result — what works now', true)}
+      </div>
       <div className="grid sm:grid-cols-2 gap-4">{listField(project, index, 'technologies', 'Technologies')}{listField(project, index, 'features', 'Features')}</div>
       {listField(project, index, 'plannedFeatures', 'Planned additions')}
       <div className="grid sm:grid-cols-2 gap-4 items-end">

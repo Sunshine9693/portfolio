@@ -49,6 +49,8 @@ const portfolioDataSchema = new mongoose.Schema({
       featured: Boolean,
       description: String,
       longDescription: String,
+      challenge: String,
+      result: String,
       technologies: [String],
       features: [String],
       plannedFeatures: [String],

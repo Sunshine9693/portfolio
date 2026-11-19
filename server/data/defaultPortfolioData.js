@@ -121,6 +121,8 @@ export const defaultPortfolioData = {
       featured: true,
       description: "A voice assistant for spoken questions, notes, reminders, and weather updates.",
       longDescription: "I built AURA to handle spoken requests, save notes and reminders, and answer questions. It connects a React interface to an Express backend, language model APIs, and MongoDB.",
+      challenge: "Keeping each user's saved notes separate.",
+      result: "Notes are stored with a user ID. The API scopes reading, editing, and deleting notes to the signed-in user.",
       technologies: ['React.js', 'Vite', 'Tailwind CSS', 'Node.js', 'Express.js', 'MongoDB', 'LLM API', 'Axios', 'Web Speech API'],
       features: [
         "Spoken questions and responses",
@@ -155,6 +157,8 @@ export const defaultPortfolioData = {
       featured: false,
       description: "I'm building a shoe-shopping interface with product listings, a cart, a wishlist, and sign-in pages.",
       longDescription: "SnapShoes is an ongoing React project. My focus is the frontend: browsing and filtering products, managing a cart and wishlist, and building the account and checkout screens.",
+      challenge: "Keeping cart quantities and totals consistent as items change.",
+      result: "Shared React state tracks the cart, totals are calculated from its items, and local storage keeps the cart between visits.",
       technologies: ['React.js', 'JavaScript (ES6+)', 'Tailwind CSS', 'Responsive UI'],
       features: [
         "Product listings and detail pages",
@@ -185,6 +189,8 @@ export const defaultPortfolioData = {
       featured: false,
       description: "A group project that assigns hostel rooms using student applications, available capacity, and allocation rules.",
       longDescription: "Built with a team at MANUU, this project brings student applications and hostel room allocation into one system. Students can apply for rooms, and administrators can review and manage allotments.",
+      challenge: "Connecting the application screens, backend APIs, and database.",
+      result: "The project connects student applications and room-allotment data through a shared API and database workflow.",
       technologies: ['HTML5', 'CSS3', 'JavaScript', 'Database Integration', 'Algorithmic Allocation Logic'],
       features: [
         "Student applications and eligibility checks",
@@ -214,6 +220,8 @@ export const defaultPortfolioData = {
       featured: false,
       description: "A JavaScript task manager that sorts tasks by priority and saves them in the browser.",
       longDescription: "I built this task manager with JavaScript, HTML, and CSS to practise DOM updates and local storage. Tasks can be organised by priority and remain saved after the page is closed.",
+      challenge: "Keeping tasks and their priorities after a page refresh.",
+      result: "Tasks are saved in local storage, restored on load, and sorted by priority and due date.",
       technologies: ['Vanilla JavaScript (ES6+)', 'HTML5', 'CSS3', 'Local Storage API'],
       features: [
         "Urgent, high, and normal priorities",
@@ -242,6 +250,8 @@ export const defaultPortfolioData = {
       featured: false,
       description: "A browser music player with playlists, track seeking, and volume controls.",
       longDescription: "I built this player to practise the HTML audio API and JavaScript events. It includes a seek bar, track queue, playback status, and volume controls.",
+      challenge: "Keeping the seek bar and play/pause controls in sync with the audio.",
+      result: "Audio events update the seek bar, and seeking or changing tracks updates the playback position and controls.",
       technologies: ['HTML5 Audio API', 'CSS3 Animations', 'JavaScript ES6+', 'Event Handling'],
       features: [
         "Seek bar with playback time",
