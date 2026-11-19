@@ -6,7 +6,9 @@ const password = process.env.PORTFOLIO_ADMIN_PASSWORD;
 assert.ok(base && origin && username && password, 'Set PORTFOLIO_API_URL, PORTFOLIO_SITE_URL, PORTFOLIO_ADMIN_USERNAME, and PORTFOLIO_ADMIN_PASSWORD.');
 const loginResponse=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json',Origin:origin},body:JSON.stringify({username,password})});
 assert.equal(loginResponse.status,200,'Production sign-in');
-assert.equal(loginResponse.headers.get('access-control-allow-origin'),origin,'Frontend CORS');
+if (new URL(base).origin !== new URL(origin).origin) {
+  assert.equal(loginResponse.headers.get('access-control-allow-origin'),origin,'Frontend CORS');
+}
 const login=await loginResponse.json();assert.ok(login.token);
 const headers={Authorization:`Bearer ${login.token}`};
 const me=await fetch(base+'/api/auth/me',{headers});assert.equal(me.status,200,'Authenticated session');

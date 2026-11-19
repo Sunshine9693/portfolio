@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       return {
         success: false,
-        message: err.response?.data?.message || (err.response ? 'Sign-in is unavailable. Please try again shortly.' : 'Could not reach the sign-in service. Check your connection and try again.'),
+        message: err.response?.data?.message || (err.code === 'ECONNABORTED' ? 'The sign-in service is taking longer than expected. Please try again.' : err.response ? 'Sign-in is unavailable. Please try again shortly.' : 'Could not reach the sign-in service. Please try again.'),
       };
     }
   }, []);

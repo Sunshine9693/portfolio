@@ -7,7 +7,7 @@ export const API_BASE_URL = import.meta.env.DEV ? configuredBaseUrl.replace(/\/+
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 20000,
+  timeout: 90000,
 });
 
 export const resolveAssetUrl = (url) => {
