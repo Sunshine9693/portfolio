@@ -26,7 +26,7 @@ The admin portal at `/admin` supports adding and editing projects, selecting a f
 | Hosting | Vercel frontend and Render backend |
 | Optional AI providers | Gemini, OpenAI, OpenRouter |
 
-Production requests use the portfolio's own domain. Vercel forwards `/api/*` and `/uploads/*` to the Render backend, then serves the React app for other routes.
+The production browser connects directly to the Render API for sign-in, content, and uploaded media. The API permits the portfolio's exact Vercel origin through CORS. Vercel serves the React app; its legacy API/upload rewrites remain for older clients.
 
 ## Run locally
 
@@ -112,7 +112,7 @@ After signing in, use **Change password** to set a new password. It requires the
 | `OPENAI_API_KEY` / `OPENAI_MODEL` | Optional OpenAI credentials and model selection. |
 | `UPLOADS_DIR` | Optional local or temporary upload directory. Persistent media uses GridFS when MongoDB is connected. |
 
-`VITE_API_BASE_URL` can override the backend origin **during local development only**. Production builds use relative URLs and the rewrites in `vercel.json`; they do not use this variable.
+`VITE_API_BASE_URL` can override the backend origin **during local development only**. Production builds use `PRODUCTION_API_ORIGIN` in `client/src/services/apiRouting.js`. The frontend origin is included in `server/config/cors.js`, so stale `CLIENT_URL` settings cannot block the main portfolio.
 
 ## Uploads and storage
 
@@ -143,7 +143,7 @@ The current backend is [portfolio-backend-v8mm.onrender.com](https://portfolio-b
 
 Import the repository with its root directory unchanged. [vercel.json](vercel.json) defines dependency installation, the frontend build, and the `client/dist` output directory.
 
-If deploying a fork or a different backend, change **both** the API and upload rewrite destinations in `vercel.json` to your backend URL before deploying. A production `VITE_API_BASE_URL` value will not change those routes.
+If deploying a fork or a different backend, update `PRODUCTION_API_ORIGIN` in `client/src/services/apiRouting.js`, the frontend origin in `server/config/cors.js`, and the legacy rewrite destinations in `vercel.json`. Rebuild and deploy both services.
 
 The current frontend is [sanafatma-portfolio.vercel.app](https://sanafatma-portfolio.vercel.app).
 

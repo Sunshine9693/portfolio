@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import mongoose from 'mongoose';
 
 import { connectDB } from './config/db.js';
+import { createOriginMatcher } from './config/cors.js';
 import contentRoutes from './routes/contentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
@@ -38,24 +39,7 @@ app.use(
 // CORS Configuration
 // CLIENT_URL accepts a comma-separated list. Entries may use '*' as a wildcard,
 // which is useful for Vercel preview deployment URLs.
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  ...env.clientUrl
-    .split(',')
-    .map((value) => value.trim().replace(/\/+$/, ''))
-    .filter(Boolean)
-];
-
-const matchesAllowedOrigin = (origin) =>
-  allowedOrigins.some((allowed) => {
-    if (!allowed.includes('*')) return allowed === origin;
-    const pattern = allowed
-      .split('*')
-      .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
-      .join('.*');
-    return new RegExp(`^${pattern}$`).test(origin);
-  });
+const matchesAllowedOrigin = createOriginMatcher(env.clientUrl);
 
 app.use(
   cors({

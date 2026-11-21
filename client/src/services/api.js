@@ -1,10 +1,11 @@
 import axios from 'axios';
 import { canRetryRequest } from './requestRecovery';
+import { getApiBaseUrl, resolveApiAsset } from './apiRouting';
 
 const configuredBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
-// Vercel forwards production API and upload requests through the site's origin.
-// Keep an optional direct API URL for local development only.
-export const API_BASE_URL = import.meta.env.DEV ? configuredBaseUrl.replace(/\/+$/, '') : '';
+// Browser requests go directly to the Render API with explicit CORS permission.
+// An external rewrite cannot present an upstream browser challenge to the visitor.
+export const API_BASE_URL = getApiBaseUrl(import.meta.env.DEV, configuredBaseUrl);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -18,12 +19,7 @@ api.interceptors.response.use(response => response, async error => {
   return api.request(error.config);
 });
 
-export const resolveAssetUrl = (url) => {
-  if (!url || typeof url !== 'string') return '';
-  if (/^(?:https?:)?\/\//i.test(url) || /^(?:data|blob):/i.test(url)) return url;
-  if (url.startsWith('/uploads/') && API_BASE_URL) return `${API_BASE_URL}${url}`;
-  return url;
-};
+export const resolveAssetUrl = (url) => resolveApiAsset(url, API_BASE_URL);
 
 export const isApiCancel = (error) => error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError';
 
