@@ -1082,7 +1082,8 @@ export const AdminDashboard = () => {
                     {isSaving ? 'Uploading...' : 'Add Certificate'}
                   </button>
                 </div>
-                <p className="font-mono-tech text-[10px] text-slate-muted">PDF, JPG, PNG, or WebP · Large photos are resized automatically (up to 30 MB)</p>
+                {certificateFile && <p role="status" className="text-sm text-slate-main break-all">Selected: {certificateFile.name}</p>}
+                <p className="font-mono-tech text-[10px] text-slate-muted">PDF up to 4 MB · JPG, PNG, or WebP photos up to 30 MB are resized for upload</p>
               </form>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1173,6 +1174,7 @@ export const AdminDashboard = () => {
                       try { validateUpload(file, true); setPhotoFile(file); setPhotoPreview(URL.createObjectURL(file)); }
                       catch (error) { setPhotoFile(null); setPhotoPreview(''); e.target.value = ''; showToast('error', error.message); }
                     }} />
+                  {photoFile && <p role="status" className="text-sm text-slate-main break-all">Selected: {photoFile.name}</p>}
                   {photoPreview && (
                     <img src={photoPreview} alt="Selected photo preview" className="w-full h-28 rounded-xl object-cover border border-midnight-border" />
                   )}
