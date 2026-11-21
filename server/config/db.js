@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { env } from './env.js';
+import { createConnectionRecovery } from '../services/connectionRecovery.js';
 
 export let isMongoConnected = false;
 
@@ -9,20 +10,23 @@ mongoose.connection.on('connected', () => {
 
 mongoose.connection.on('disconnected', () => {
   isMongoConnected = false;
+  recovery.retry();
 });
 
-export const connectDB = async () => {
-  try {
+const recovery = createConnectionRecovery({
+  isReady: () => mongoose.connection.readyState === 1,
+  connect: async () => {
     const conn = await mongoose.connect(env.mongoUri, {
       serverSelectionTimeoutMS: 5000,
     });
     console.log(`[MongoDB Connected]: ${conn.connection.host}`);
     isMongoConnected = true;
-    return true;
-  } catch (error) {
+  },
+  onError: (error) => {
     console.warn(`[MongoDB Warning]: Could not connect to MongoDB: ${error.message}`);
-    console.warn('[MongoDB Warning]: Falling back to file-based auth and storage.');
+    console.warn('[MongoDB Warning]: Retrying connection automatically.');
     isMongoConnected = false;
-    return false;
-  }
-};
+  },
+});
+
+export const connectDB = recovery.ensure;

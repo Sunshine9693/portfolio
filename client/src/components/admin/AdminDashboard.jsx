@@ -9,8 +9,10 @@ import { usePortfolio } from '../../context/PortfolioContext';
 import api, { isApiCancel, resolveAssetUrl } from '../../services/api';
 import './AdminDashboard.css';
 import { ProjectEditor } from './ProjectEditor';
+import { FilePicker } from './FilePicker';
 import { ChangePassword } from './ChangePassword';
 import { withProjectStory } from '../../data/projectStories';
+import { prepareUpload, validateUpload, uploadErrorMessage } from '../../services/uploadFile';
 
 export const AdminDashboard = () => {
   const { admin, token, isAuthenticated, isAuthLoading, sessionError, retrySession, login, setupAdmin, logout } = useAuth();
@@ -48,6 +50,7 @@ export const AdminDashboard = () => {
   // Toast feedback
   const [toast, setToast] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
   const toastTimerRef = useRef(null);
 
   const showToast = useCallback((type, message) => {
@@ -172,30 +175,30 @@ export const AdminDashboard = () => {
     const file = input.files?.[0];
     if (!file) return;
 
-    if (file.size > 4 * 1024 * 1024) {
-      showToast('error', 'The selected file is larger than the 4 MB limit.');
-      input.value = '';
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
       setIsSaving(true);
+      setUploadStatus(`Selected: ${file.name}. Preparing upload…`);
+      const preparedFile = await prepareUpload(file);
+      const formData = new FormData();
+      formData.append('file', preparedFile);
+      // Wake the service before sending a file; file POSTs are never replayed automatically.
+      await api.get('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
       const res = await api.post('/api/content/upload', formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.data?.success && res.data.fileUrl) {
         onComplete(res.data.fileUrl);
+        setUploadStatus(`${file.name} uploaded. Save this section to publish it.`);
         showToast('success', `File ${file.name} uploaded successfully!`);
       } else {
         showToast('error', res.data?.message || 'File upload failed.');
       }
     } catch (error) {
       if (!isApiCancel(error)) {
-        showToast('error', error.response?.data?.message || 'The file could not be uploaded.');
+        const message = uploadErrorMessage(error);
+        setUploadStatus(`${file.name}: ${message} Choose the file again to retry.`);
+        showToast('error', message);
       }
     } finally {
       setIsSaving(false);
@@ -230,17 +233,14 @@ export const AdminDashboard = () => {
       return;
     }
 
-    if (file.size > 4 * 1024 * 1024) {
-      showToast('error', 'The selected file is larger than the 4 MB limit.');
-      return;
-    }
-
     setIsSaving(true);
     let fileUrl = '';
 
     try {
+      const preparedFile = await prepareUpload(file);
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', preparedFile);
+      await api.get('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
       const uploadResponse = await api.post(`/api/content/media/${kind}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -275,7 +275,7 @@ export const AdminDashboard = () => {
       if (!isApiCancel(error)) {
         showToast(
           'error',
-          error.response?.data?.message || error.message || 'Could not save the uploaded file.'
+          uploadErrorMessage(error)
         );
       }
     } finally {
@@ -753,6 +753,7 @@ export const AdminDashboard = () => {
           ))}
         </div>
 
+        {uploadStatus && <p role="status" className="text-sm text-slate-main p-4 border border-midnight-border rounded-xl mb-4">{uploadStatus}</p>}
         {activeTab === 'security' && <ChangePassword />}
 
         {/* TAB 1: HERO & IDENTITY */}
@@ -789,18 +790,8 @@ export const AdminDashboard = () => {
                   <p className="font-sans text-xs text-slate-muted">
                     Upload an authentic portrait photo (PNG, JPG, WebP).
                   </p>
-                  <label className="btn-secondary px-4 py-2 rounded-xl text-xs font-mono-tech uppercase inline-flex items-center gap-2 cursor-pointer hover:border-cyan/50 hover:text-cyan">
-                    <Upload className="w-3.5 h-3.5 text-cyan" />
-                    <span>Upload New Photo</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) =>
-                        handleFileUpload(e, (url) => setHeroForm(prev => ({ ...prev, portraitUrl: url })))
-                      }
-                    />
-                  </label>
+                  <FilePicker label="Choose profile photo" imagesOnly disabled={isSaving}
+                    onChange={(e) => handleFileUpload(e, (url) => setHeroForm(prev => ({ ...prev, portraitUrl: url })))} />
                 </div>
               </div>
 
@@ -816,18 +807,8 @@ export const AdminDashboard = () => {
                   <span className="font-mono-tech text-xs text-slate-muted block">
                     Current: {heroForm.resumeUrl || '/Sana_Fatma_Resume.pdf'}
                   </span>
-                  <label className="btn-secondary px-4 py-1.5 rounded-xl text-xs font-mono-tech uppercase inline-flex items-center gap-2 cursor-pointer mt-2 hover:border-cyan/50 hover:text-cyan">
-                    <Upload className="w-3.5 h-3.5 text-cyan" />
-                    <span>Replace Resume PDF</span>
-                    <input
-                      type="file"
-                      accept="application/pdf"
-                      className="hidden"
-                      onChange={(e) =>
-                        handleFileUpload(e, (url) => setHeroForm(prev => ({ ...prev, resumeUrl: url })))
-                      }
-                    />
-                  </label>
+                  <FilePicker label="Choose resume PDF" accept=".pdf,application/pdf" disabled={isSaving}
+                    onChange={(e) => handleFileUpload(e, (url) => setHeroForm(prev => ({ ...prev, resumeUrl: url })))} />
                 </div>
               </div>
 
@@ -1085,14 +1066,13 @@ export const AdminDashboard = () => {
                   />
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <input
-                    ref={certificateFileInput}
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
-                    onChange={(e) => setCertificateFile(e.target.files?.[0] || null)}
-                    required
-                    className="w-full text-xs text-slate-muted file:mr-3 file:px-4 file:py-2 file:rounded-xl file:border-0 file:bg-midnight-elevated file:text-slate-main file:font-mono-tech"
-                  />
+                  <FilePicker label="Choose certificate file" inputRef={certificateFileInput} required disabled={isSaving}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try { validateUpload(file); setCertificateFile(file); }
+                      catch (error) { setCertificateFile(null); e.target.value = ''; showToast('error', error.message); }
+                    }} />
                   <button
                     type="submit"
                     disabled={isSaving}
@@ -1102,7 +1082,7 @@ export const AdminDashboard = () => {
                     {isSaving ? 'Uploading...' : 'Add Certificate'}
                   </button>
                 </div>
-                <p className="font-mono-tech text-[10px] text-slate-muted">PDF, JPG, PNG, or WebP · 4 MB maximum</p>
+                <p className="font-mono-tech text-[10px] text-slate-muted">PDF, JPG, PNG, or WebP · Large photos are resized automatically (up to 30 MB)</p>
               </form>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1186,24 +1166,19 @@ export const AdminDashboard = () => {
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_160px] gap-4 items-center">
-                  <input
-                    ref={photoFileInput}
-                    type="file"
-                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                  <FilePicker label="Choose gallery photo" inputRef={photoFileInput} imagesOnly required disabled={isSaving}
                     onChange={(e) => {
-                      const selectedFile = e.target.files?.[0] || null;
-                      setPhotoFile(selectedFile);
-                      setPhotoPreview(selectedFile ? URL.createObjectURL(selectedFile) : '');
-                    }}
-                    required
-                    className="w-full text-xs text-slate-muted file:mr-3 file:px-4 file:py-2 file:rounded-xl file:border-0 file:bg-midnight-elevated file:text-slate-main file:font-mono-tech"
-                  />
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try { validateUpload(file, true); setPhotoFile(file); setPhotoPreview(URL.createObjectURL(file)); }
+                      catch (error) { setPhotoFile(null); setPhotoPreview(''); e.target.value = ''; showToast('error', error.message); }
+                    }} />
                   {photoPreview && (
                     <img src={photoPreview} alt="Selected photo preview" className="w-full h-28 rounded-xl object-cover border border-midnight-border" />
                   )}
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <p className="font-mono-tech text-[10px] text-slate-muted">JPG, PNG, or WebP · 4 MB maximum</p>
+                  <p className="font-mono-tech text-[10px] text-slate-muted">JPG, PNG, or WebP · Large photos are resized automatically (up to 30 MB)</p>
                   <button
                     type="submit"
                     disabled={isSaving}

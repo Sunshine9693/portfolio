@@ -1,4 +1,5 @@
-import { FileDown, Plus, Trash2 } from 'lucide-react';
+import { FilePicker } from './FilePicker';
+import { Plus, Trash2 } from 'lucide-react';
 
 const fieldClass = 'w-full px-3 py-2 rounded-lg bg-midnight-elevated border border-midnight-border text-slate-main focus:outline-none focus:border-cyan';
 
@@ -48,7 +49,8 @@ export function ProjectEditor({ projects, onChange, isSaving, onUpload }) {
       {listField(project, index, 'plannedFeatures', 'Planned additions')}
       <div className="grid sm:grid-cols-2 gap-4 items-end">
         {textField(project, index, 'imageUrl', 'Image URL')}
-        <label className="btn-secondary px-4 py-2 flex items-center justify-center gap-2 cursor-pointer"><FileDown size={16} /> Upload project image<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={isSaving} onChange={(event) => onUpload(event, (imageUrl) => update(index, { imageUrl }))} /></label>
+        <FilePicker label={`Choose image for ${project.title || 'project'}`} imagesOnly disabled={isSaving}
+          onChange={(event) => onUpload(event, (imageUrl) => update(index, { imageUrl }))} />
       </div>
       <label className="flex items-center gap-2 text-sm text-slate-main"><input type="checkbox" checked={Boolean(project.featured)} onChange={(event) => onChange(projects.map((item, current) => ({ ...item, featured: current === index ? event.target.checked : false })))} /> Feature this project</label>
     </article>)}
