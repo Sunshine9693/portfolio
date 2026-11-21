@@ -1,24 +1,33 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import api, { isApiCancel } from '../services/api';
+import { readAdminToken, saveAdminToken, clearAdminToken, isRejectedAdminSession } from '../services/adminSession';
 
 const AuthContext = createContext();
-const TOKEN_KEY = 'sana_admin_token';
 
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || '');
+  const [token, setToken] = useState(readAdminToken);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [sessionError, setSessionError] = useState('');
+  const [verificationAttempt, setVerificationAttempt] = useState(0);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
+    clearAdminToken();
     setToken('');
     setAdmin(null);
+    setSessionError('');
+  }, []);
+
+  const retrySession = useCallback(() => {
+    setIsAuthLoading(true);
+    setVerificationAttempt((attempt) => attempt + 1);
   }, []);
 
   useEffect(() => {
     const controller = new AbortController();
 
     const verifyToken = async () => {
+      setSessionError('');
       if (!token) {
         setAdmin(null);
         setIsAuthLoading(false);
@@ -33,10 +42,12 @@ export const AuthProvider = ({ children }) => {
         if (res.data?.success) {
           setAdmin(res.data.admin);
         } else {
-          logout();
+          setSessionError('Could not check your saved session. Please retry or sign in below.');
         }
       } catch (err) {
-        if (!isApiCancel(err)) logout();
+        if (isApiCancel(err)) return;
+        if (isRejectedAdminSession(err)) logout();
+        else setSessionError('The sign-in service is temporarily unavailable. Please retry your saved session or sign in below.');
       } finally {
         if (!controller.signal.aborted) setIsAuthLoading(false);
       }
@@ -45,14 +56,15 @@ export const AuthProvider = ({ children }) => {
     verifyToken();
 
     return () => controller.abort();
-  }, [token, logout]);
+  }, [token, logout, verificationAttempt]);
 
   const login = useCallback(async (username, password) => {
+    setSessionError('');
     try {
       const res = await api.post('/api/auth/login', { username, password });
       if (res.data?.success) {
         const receivedToken = res.data.token;
-        localStorage.setItem(TOKEN_KEY, receivedToken);
+        saveAdminToken(receivedToken);
         setToken(receivedToken);
         setAdmin(res.data.admin);
         return { success: true };
@@ -76,7 +88,7 @@ export const AuthProvider = ({ children }) => {
       });
       if (res.data?.success) {
         const receivedToken = res.data.token;
-        localStorage.setItem(TOKEN_KEY, receivedToken);
+        saveAdminToken(receivedToken);
         setToken(receivedToken);
         setAdmin(res.data.admin);
         return { success: true };
@@ -96,7 +108,7 @@ export const AuthProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.data?.success && res.data.token) {
-        localStorage.setItem(TOKEN_KEY, res.data.token);
+        saveAdminToken(res.data.token);
         setToken(res.data.token);
         return { success: true, message: res.data.message };
       }
@@ -113,6 +125,8 @@ export const AuthProvider = ({ children }) => {
         token,
         isAuthenticated: Boolean(admin),
         isAuthLoading,
+        sessionError,
+        retrySession,
         login,
         setupAdmin,
         changePassword,

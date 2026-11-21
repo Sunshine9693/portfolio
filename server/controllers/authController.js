@@ -15,6 +15,9 @@ const generateToken = (id, version = 0) => {
 };
 
 const isValidEmail = (value) => /^\S+@\S+\.\S+$/.test(value);
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const invalidCredentials = 'Username/email or password is incorrect.';
+const storageUnavailable = 'Sign-in is temporarily unavailable. Please try again shortly.';
 
 // ── File-based admin helpers ────────────────────────────────────────────
 
@@ -61,24 +64,32 @@ export const loginAdmin = async (req, res) => {
     }
 
     if (username.length > 254 || password.length > 200) {
-      return res.status(400).json({ success: false, message: 'Invalid credentials.' });
+      return res.status(400).json({ success: false, message: invalidCredentials });
     }
+
+    if (env.isProduction && !isMongoConnected) {
+      return res.status(503).json({ success: false, message: storageUnavailable });
+    }
+    const identity = username.trim();
 
     // Try MongoDB first
     const Model = await getAdminUserModel();
+    if (env.isProduction && !Model) {
+      return res.status(503).json({ success: false, message: storageUnavailable });
+    }
     if (Model && isMongoConnected) {
       try {
         const admin = await Model.findOne({
           $or: [
-            { username: username.trim() },
-            { email: username.trim().toLowerCase() }
+            { username: { $regex: `^${escapeRegex(identity)}$`, $options: 'i' } },
+            { email: identity.toLowerCase() }
           ]
         });
 
         if (admin) {
           const isMatch = await admin.matchPassword(password);
           if (!isMatch) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+            return res.status(401).json({ success: false, message: invalidCredentials });
           }
           admin.lastLogin = new Date();
           await admin.save();
@@ -89,7 +100,12 @@ export const loginAdmin = async (req, res) => {
             admin: { id: admin._id, username: admin.username, email: admin.email, lastLogin: admin.lastLogin }
           });
         }
+        return res.status(401).json({ success: false, message: invalidCredentials });
       } catch (e) {
+        if (env.isProduction) {
+          console.error('[Auth] Account lookup unavailable:', e.message);
+          return res.status(503).json({ success: false, message: storageUnavailable });
+        }
         console.warn('[Auth] MongoDB login attempt failed, trying file fallback:', e.message);
       }
     }
@@ -100,14 +116,14 @@ export const loginAdmin = async (req, res) => {
       return res.status(401).json({ success: false, message: 'No admin account found. Please complete Initial Setup first.' });
     }
 
-    const nameMatch = fileAdmin.username === username.trim() || fileAdmin.email === username.trim().toLowerCase();
+    const nameMatch = fileAdmin.username.toLowerCase() === identity.toLowerCase() || fileAdmin.email.toLowerCase() === identity.toLowerCase();
     if (!nameMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+      return res.status(401).json({ success: false, message: invalidCredentials });
     }
 
     const passMatch = await bcrypt.compare(password, fileAdmin.password);
     if (!passMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+      return res.status(401).json({ success: false, message: invalidCredentials });
     }
 
     fileAdmin.lastLogin = new Date().toISOString();

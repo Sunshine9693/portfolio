@@ -77,3 +77,10 @@
 .admin-dashboard { font-size: 1rem; }
 .admin-dashboard .text-xs { font-size: 0.875rem; }
 .admin-dashboard .uppercase { text-transform: none; }
+
+/* Keep sign-in fields readable and prevent automatic input zoom on phones. */
+.admin-dashboard input.text-xs,
+.admin-dashboard textarea.text-xs,
+.admin-dashboard select.text-xs { font-size: 1rem; }
+.admin-dashboard input:not([type="checkbox"]):not([type="file"]),
+.admin-dashboard select { min-height: 2.75rem; }

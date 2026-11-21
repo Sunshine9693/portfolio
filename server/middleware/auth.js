@@ -25,6 +25,9 @@ export const protectAdmin = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, env.jwtSecret);
+      if (env.isProduction && !isMongoConnected) {
+        return res.status(503).json({ success: false, message: 'Account storage is temporarily unavailable. Please try again shortly.' });
+      }
 
       // Try MongoDB first
       if (isMongoConnected) {
@@ -39,6 +42,9 @@ export const protectAdmin = async (req, res, next) => {
             return next();
           }
         } catch (e) {
+          if (env.isProduction) {
+            return res.status(503).json({ success: false, message: 'Account storage is temporarily unavailable. Please try again shortly.' });
+          }
           // MongoDB lookup failed, try file fallback
         }
       }

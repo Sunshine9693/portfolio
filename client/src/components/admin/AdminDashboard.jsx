@@ -13,7 +13,7 @@ import { ChangePassword } from './ChangePassword';
 import { withProjectStory } from '../../data/projectStories';
 
 export const AdminDashboard = () => {
-  const { admin, token, isAuthenticated, isAuthLoading, login, setupAdmin, logout } = useAuth();
+  const { admin, token, isAuthenticated, isAuthLoading, sessionError, retrySession, login, setupAdmin, logout } = useAuth();
   const { data: portfolioData, refreshData, updateSectionData } = usePortfolio();
 
   // Auth form states
@@ -21,6 +21,7 @@ export const AdminDashboard = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [setupToken, setSetupToken] = useState('');
   const [authError, setAuthError] = useState('');
   const [isSubmittingAuth, setIsSubmittingAuth] = useState(false);
@@ -495,10 +496,13 @@ export const AdminDashboard = () => {
           </div>
 
           {/* Error Banner */}
-          {authError && (
-            <div className="mb-4 p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/40 text-xs font-mono-tech text-slate-main flex items-start gap-2">
+          {(authError || sessionError) && (
+            <div role="alert" className="mb-4 p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/40 text-xs font-mono-tech text-slate-main flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-              <span>{authError}</span>
+              <div>
+                <span>{authError || sessionError}</span>
+                {sessionError && token && <button type="button" onClick={retrySession} className="block mt-2 underline underline-offset-4 text-cyan">Retry saved session</button>}
+              </div>
             </div>
           )}
 
@@ -513,11 +517,15 @@ export const AdminDashboard = () => {
                   <User className="w-4 h-4 text-slate-muted absolute left-3.5 top-3.5" />
                   <input
                     id="admin-username"
+                    name="username"
                     autoComplete="username"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="sana"
+                    placeholder="Username or email"
                     required
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-midnight-elevated border border-midnight-border text-slate-main text-xs font-sans focus:outline-none focus:border-cyan"
                   />
@@ -532,16 +540,22 @@ export const AdminDashboard = () => {
                   <Lock className="w-4 h-4 text-slate-muted absolute left-3.5 top-3.5" />
                   <input
                     id="admin-password"
+                    name="password"
                     autoComplete="current-password"
-                    type="password"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-midnight-elevated border border-midnight-border text-slate-main text-xs font-sans focus:outline-none focus:border-cyan"
+                    className="w-full pl-10 pr-16 py-2.5 rounded-xl bg-midnight-elevated border border-midnight-border text-slate-main text-xs font-sans focus:outline-none focus:border-cyan"
                   />
+                  <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} className="absolute right-2 top-1/2 -translate-y-1/2 min-h-11 px-2 text-sm text-cyan font-medium">{showPassword ? 'Hide' : 'Show'}</button>
                 </div>
               </div>
+              <p className="text-sm text-slate-muted">Use your username or email. Username capitalization does not matter; your password must match exactly.</p>
 
               <button
                 type="submit"
