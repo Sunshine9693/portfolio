@@ -41,7 +41,7 @@ Checked with the in-app browser and the local production build:
 | Skills and media dialogs | Open correctly; Escape closes; focus stays in the dialog and returns on close |
 | Mobile navigation and assistant | Open/close, keyboard focus, and body scroll restoration checked |
 | Live AI assistant | Returned the documented projects |
-| Contact form | Empty submission blocked; persistence and failure handling tested locally without adding fake live inquiries |
+| Contact form | Empty submission blocked; a labelled synthetic inquiry reached the live admin inbox and remained after reloading the admin page. Storage failures are also covered by local tests |
 | Resume, certificate PDFs, project image, portrait, uploaded photos | Eight distinct file URLs returned 200 with the expected PDF/image content types |
 | GitHub project links | Rendered links checked; the legacy GitHub profile URL is corrected by `portfolioCopy.js` |
 | Admin | Saved session restored; identity, about, skills, projects, media, inquiries, and security screens opened |
@@ -51,7 +51,9 @@ Checked with the in-app browser and the local production build:
 
 ## Limits
 
-Responsive checks use browser viewport sizes, not physical phones. Actual microphone permission, speech playback quality, and OS file-provider behavior still depend on the visitor's browser and device. No real contact messages or password changes were submitted during this audit. Existing portfolio entries were not deleted.
+Responsive checks use browser viewport sizes, not physical phones. Actual microphone permission, speech playback quality, and OS file-provider behavior still depend on the visitor's browser and device. Saved-session restoration, anonymous-access rejection, and incorrect-credential rejection were verified live; fresh sign-in with the owner's current password was not performed.
+
+One clearly labelled synthetic QA inquiry remains in the admin inbox. No personal inquiries or password changes were submitted. Inquiry delivery currently means storage in the admin inbox; email notifications are not configured. Existing portfolio entries were not deleted. The public `admin upload test` gallery card was retained as requested; remove or hide that test card before promoting the portfolio professionally.
 
 Render's free service can sleep while idle. Recovery logic handles transient failures, but it does not provide an uptime guarantee or remove the hosting plan's cold-start delay.
 
