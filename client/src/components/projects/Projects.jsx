@@ -9,7 +9,7 @@ export const Projects = ({ projectsData }) => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [activeFilter, setActiveFilter] = useState('All');
 
-  useDialogBehavior(Boolean(selectedProject), () => setSelectedProject(null));
+  const dialogRef = useDialogBehavior(Boolean(selectedProject), () => setSelectedProject(null));
 
   const defaultProjects = [
     {
@@ -453,6 +453,8 @@ export const Projects = ({ projectsData }) => {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-midnight/85 backdrop-blur-md animate-fade-in"
           onClick={() => setSelectedProject(null)}
           role="dialog"
+          ref={dialogRef}
+          tabIndex={-1}
           aria-modal="true"
           aria-label={`${selectedProject.title} case study`}
         >

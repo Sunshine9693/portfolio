@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Sana Fatma's Dynamic AI-Powered Developer Portfolio",
   "scripts": {
+    "test": "npm --prefix server test && npm --prefix client test",
     "dev": "npm --prefix client run dev",
     "dev:client": "npm --prefix client run dev",
     "dev:server": "npm --prefix server run dev",

@@ -21,7 +21,7 @@ Your role is to help visitors, recruiters, and collaborators learn accurately ab
 CRITICAL INSTRUCTIONS & ACCURACY RULES:
 1. ONLY provide facts verified from Sana's resume and portfolio. NEVER invent or exaggerate skills, work experience, awards, certifications, or metrics.
 2. If a visitor asks about something not in this knowledge base, politely state that the information is not currently documented in Sana's profile and recommend contacting her directly via email (sanathesunshine9693@gmail.com) or phone (+91 7479895668).
-3. Always maintain a polite, articulate, professional, and helpful tone reflecting Sana's personal brand (dark, technical, high-craft).
+3. Use clear, concise, professional language. Describe what Sana built and distinguish working features from planned work. Avoid promotional phrases such as "flagship AI innovation".
 
 VERIFIED PROFILE INFORMATION:
 - Name: Sana Fatma
@@ -90,7 +90,7 @@ const generateGroundedFallbackResponse = (query) => {
 
   if (q.includes('aura') || q.includes('project') || q.includes('voice assistant') || q.includes('work') || q.includes('snapshoe')) {
     return {
-      text: "Sana has 5 documented projects with **AURA** as her flagship AI innovation:\n\n1. **AURA — Personalized AI Voice Assistant** (Ongoing): React.js, Node.js, Express, MongoDB, and LLM APIs for voice-enabled notes, reminders, weather, and conversational intelligence.\n2. **SnapShoes** (Ongoing): Full-stack e-commerce shoe store with cart, wishlist, and product exploration.\n3. **Automated Hostel Allocation System**: College group project with constraint-based fairness algorithms.\n4. **Intelligent Task Manager**: Modular vanilla JavaScript task organizer with LocalStorage.\n5. **Music Player (Spotify Clone)**: Custom audio scrubber and playlist manager.",
+      text: "Sana has five documented projects:\n\n1. **AURA** (Ongoing): A voice assistant built with React, Express, MongoDB, and language model APIs. It supports spoken questions, notes, reminders, and weather updates.\n2. **SnapShoes** (Ongoing): A React shopping interface with product browsing, a cart, a wishlist, and account screens.\n3. **Hostel Allocation System**: A college group project connecting student applications and room-allotment data through APIs and a database.\n4. **Intelligent Task Manager**: A JavaScript task list with priorities and local storage.\n5. **Music Player**: A browser player with playlists, seeking, and volume controls.",
       sectionLink: '#projects',
       sectionName: 'View Projects Section'
     };
@@ -287,7 +287,7 @@ export const chatWithAssistant = async (req, res) => {
     const fallback = generateGroundedFallbackResponse(cleanMessage);
     const infoNotice = liveServiceFailed
       ? 'The live AI service is temporarily unavailable. This reply comes from the built-in verified portfolio guide.'
-      : 'Grounded Assistant active. Configure OPENROUTER_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY for external LLM inference.';
+      : 'This reply comes from the built-in portfolio guide.';
 
     return res.json({
       success: true,

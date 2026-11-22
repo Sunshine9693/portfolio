@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { ContactMessage } from '../models/ContactMessage.js';
+import { env } from '../config/env.js';
 
 const MAX_IN_MEMORY_MESSAGES = 500;
 let inMemoryMessages = [];
@@ -77,7 +78,12 @@ export const submitMessage = async (req, res) => {
       });
     }
 
-    // In-memory fallback keeps working when MongoDB is temporarily unavailable.
+    // Never acknowledge a production inquiry that will disappear on restart.
+    if (env.isProduction) {
+      return res.status(503).json({ success: false, message: 'Your message has not been saved because storage is reconnecting. Please try again shortly, or contact Sana by email.' });
+    }
+
+    // Temporary storage is only for local development.
     newMessage._id = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     inMemoryMessages.unshift(newMessage);
     if (inMemoryMessages.length > MAX_IN_MEMORY_MESSAGES) {
@@ -91,7 +97,7 @@ export const submitMessage = async (req, res) => {
     });
   } catch (error) {
     console.error('submitMessage error:', error);
-    return res.status(500).json({ success: false, message: 'Failed to submit message. Please try again later.' });
+    return res.status(503).json({ success: false, message: 'Could not confirm that your message was saved. Please try again later or contact Sana by email.' });
   }
 };
 
@@ -102,6 +108,7 @@ export const getMessages = async (req, res) => {
       return res.json({ success: true, count: messages.length, messages });
     }
 
+    if (env.isProduction) return res.status(503).json({ success: false, message: 'Message storage is temporarily unavailable. Please retry.' });
     return res.json({ success: true, count: inMemoryMessages.length, messages: inMemoryMessages });
   } catch (error) {
     console.error('getMessages error:', error);
@@ -125,6 +132,7 @@ export const deleteMessage = async (req, res) => {
       return res.json({ success: true, message: 'Message deleted successfully.' });
     }
 
+    if (env.isProduction) return res.status(503).json({ success: false, message: 'Message storage is temporarily unavailable. Nothing has been deleted.' });
     const initialLength = inMemoryMessages.length;
     inMemoryMessages = inMemoryMessages.filter((message) => message._id.toString() !== id);
     if (inMemoryMessages.length === initialLength) {

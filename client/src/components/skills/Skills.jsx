@@ -5,7 +5,7 @@ import { useDialogBehavior } from '../../hooks/useDialogBehavior';
 export const Skills = ({ skillsData }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  useDialogBehavior(Boolean(selectedCategory), () => setSelectedCategory(null));
+  const dialogRef = useDialogBehavior(Boolean(selectedCategory), () => setSelectedCategory(null));
 
   const defaultCategories = [
     {
@@ -191,6 +191,8 @@ export const Skills = ({ skillsData }) => {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-midnight/80 backdrop-blur-md animate-fade-in"
           onClick={() => setSelectedCategory(null)}
           role="dialog"
+          ref={dialogRef}
+          tabIndex={-1}
           aria-modal="true"
           aria-label={`${selectedCategory.category || 'Skill category'} details`}
         >

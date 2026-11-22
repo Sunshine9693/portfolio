@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Volume2, Shield, FileDown } from 'lucide-react';
 import { resolveAssetUrl } from '../../services/api';
+import { useDialogBehavior } from '../../hooks/useDialogBehavior';
 
 const SECTION_IDS = ['hero', 'about', 'skills', 'projects', 'experience', 'education', 'gallery', 'contact'];
 
@@ -20,6 +21,7 @@ export const Navbar = ({ onTriggerNarration, isNarrating, resumeUrl }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
+  const menuRef = useDialogBehavior(mobileMenuOpen, () => setMobileMenuOpen(false));
   const location = useLocation();
   const isHome = location.pathname === '/';
   const resolvedResumeUrl = resolveAssetUrl(resumeUrl) || '/Sana_Fatma_Resume.pdf';
@@ -70,24 +72,26 @@ export const Navbar = ({ onTriggerNarration, isNarrating, resumeUrl }) => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // The target sections mount after portfolio data loads, after the browser's
+  // initial anchor jump. Restore direct links such as /#projects at that point.
+  useEffect(() => {
+    if (!isHome || !location.hash) return undefined;
+    let id;
+    try { id = decodeURIComponent(location.hash.slice(1)); } catch { return undefined; }
+    const frame = window.requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ behavior: 'instant' }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [isHome, location.hash]);
+
   useEffect(() => {
     if (!mobileMenuOpen) return undefined;
 
-    const previousOverflow = document.body.style.overflow;
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') setMobileMenuOpen(false);
-    };
     const handleResize = () => {
       if (window.innerWidth >= 1280) setMobileMenuOpen(false);
     };
 
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('resize', handleResize);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('resize', handleResize);
     };
   }, [mobileMenuOpen]);
@@ -219,6 +223,11 @@ export const Navbar = ({ onTriggerNarration, isNarrating, resumeUrl }) => {
       {mobileMenuOpen && (
         <div
           id="mobile-navigation"
+          ref={menuRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+          tabIndex={-1}
           className="pointer-events-auto fixed inset-x-4 top-20 bg-midnight-surface/95 backdrop-blur-xl border border-midnight-border rounded-3xl p-6 shadow-2xl flex flex-col gap-4 xl:hidden z-50 max-h-[80vh] overflow-y-auto text-left"
         >
           <div className="flex items-center justify-between pb-3 border-b border-midnight-border">

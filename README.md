@@ -97,6 +97,10 @@ Open `/admin` and select **Initial Setup**. Enter the setup key from your backen
 
 After signing in, use **Change password** to set a new password. It requires the current password and signs out other sessions.
 
+## Testing
+
+Run `npm test` for the server and client regression suites, then `npm run build` for the production build. See [TESTING.md](TESTING.md) for browser checks, deployment troubleshooting, and device-testing limits.
+
 ## Configuration
 
 | Variable | Purpose |

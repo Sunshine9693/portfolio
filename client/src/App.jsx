@@ -15,6 +15,7 @@ import { AIAssistant } from './components/assistant/AIAssistant';
 import { Footer } from './components/common/Footer';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { usePortfolioReveal } from './hooks/usePortfolioReveal';
+import { NotFound } from './components/common/NotFound';
 
 // Public Portfolio View
 const PublicPortfolio = () => {
@@ -96,6 +97,7 @@ export function App() {
           <Routes>
             <Route path="/" element={<PublicPortfolio />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
       </PortfolioProvider>

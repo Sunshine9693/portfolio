@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Bot, X, Send, Volume2, VolumeX, Mic, MicOff, ArrowUpRight, Info } from 'lucide-react';
 import api, { isApiCancel } from '../../services/api';
 import { speechCoordinator } from '../../services/speechCoordinator';
+import { useDialogBehavior } from '../../hooks/useDialogBehavior';
 
 const INITIAL_MESSAGE = {
   role: 'assistant',
@@ -30,6 +31,14 @@ export const AIAssistant = () => {
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
   const isSendingRef = useRef(false);
+  const launcherRef = useRef(null);
+  const dialogRef = useDialogBehavior(isOpen, () => {
+    try { recognitionRef.current?.stop(); } catch { /* Already stopped. */ }
+    speechCoordinator.stop('assistant');
+    setSpeakingMessageIndex(null);
+    setIsListening(false);
+    setIsOpen(false);
+  }, launcherRef);
 
   // Auto-scroll chat.
   useEffect(() => {
@@ -101,28 +110,6 @@ export const AIAssistant = () => {
       recognitionRef.current = null;
     };
   }, []);
-
-  // Close the drawer with Escape when it is open.
-  useEffect(() => {
-    if (!isOpen) return undefined;
-
-    const handleKeyDown = (event) => {
-      if (event.key !== 'Escape') return;
-
-      try {
-        recognitionRef.current?.stop();
-      } catch {
-        // Recognition may already be stopped.
-      }
-      speechCoordinator.stop('assistant');
-      setSpeakingMessageIndex(null);
-      setIsListening(false);
-      setIsOpen(false);
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
 
   const stopListening = () => {
     try {
@@ -281,6 +268,7 @@ export const AIAssistant = () => {
           onClick={() => setIsOpen(true)}
           className="btn-primary p-4 rounded-full shadow-glow-cyan flex items-center gap-2 group transition-all duration-300 hover:scale-105"
           aria-label="Open AI Portfolio Assistant"
+          ref={launcherRef}
         >
           <div className="relative">
             <Bot className="w-6 h-6 text-midnight" />
@@ -297,6 +285,9 @@ export const AIAssistant = () => {
         <div
           className="card-dev rounded-3xl shadow-2xl w-[92vw] sm:w-[420px] h-[580px] max-h-[85vh] flex flex-col overflow-hidden animate-fade-in relative text-left border-cyan/40"
           role="dialog"
+          ref={dialogRef}
+          tabIndex={-1}
+          aria-modal="true"
           aria-label="AI Portfolio Assistant"
         >
           {/* Header */}

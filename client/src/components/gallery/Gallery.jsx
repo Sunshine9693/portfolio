@@ -54,7 +54,7 @@ export const Gallery = ({ certificatesData, galleryData }) => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [activePreview, setActivePreview] = useState(null);
 
-  useDialogBehavior(Boolean(activePreview), () => setActivePreview(null));
+  const dialogRef = useDialogBehavior(Boolean(activePreview), () => setActivePreview(null));
 
   const defaultCertificates = [
     {
@@ -283,6 +283,8 @@ export const Gallery = ({ certificatesData, galleryData }) => {
           className="gallery-preview fixed inset-0 z-50 flex items-center justify-center p-4 bg-midnight/90 backdrop-blur-md animate-fade-in"
           onClick={() => setActivePreview(null)}
           role="dialog"
+          ref={dialogRef}
+          tabIndex={-1}
           aria-modal="true"
           aria-label={`${activePreview.title} preview`}
         >

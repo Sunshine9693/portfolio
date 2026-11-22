@@ -71,7 +71,7 @@ app.get('/uploads/:filename', serveAsset);
 app.use('/uploads', express.static(uploadsDir));
 
 // API Routes
-app.use(['/api/auth', '/api/content'], async (req, res, next) => {
+app.use(['/api/auth', '/api/content', '/api/contact'], async (req, res, next) => {
   if (env.isProduction && mongoose.connection.readyState !== 1 && !(await connectDB())) {
     res.setHeader('Retry-After', '10');
     return res.status(503).json({ success: false, message: 'Storage is reconnecting. Please try again shortly.' });
