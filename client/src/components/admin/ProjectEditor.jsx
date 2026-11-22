@@ -1,4 +1,5 @@
 import { FilePicker } from './FilePicker';
+import { ProjectScreenshot } from '../projects/ProjectScreenshot';
 import { Plus, Trash2 } from 'lucide-react';
 
 const fieldClass = 'w-full px-3 py-2 rounded-lg bg-midnight-elevated border border-midnight-border text-slate-main focus:outline-none focus:border-cyan';
@@ -52,6 +53,8 @@ export function ProjectEditor({ projects, onChange, isSaving, onUpload }) {
         <FilePicker label={`Choose image for ${project.title || 'project'}`} imagesOnly disabled={isSaving}
           onChange={(event) => onUpload(event, (imageUrl) => update(index, { imageUrl }))} />
       </div>
+      <ProjectScreenshot imageUrl={project.imageUrl} title={project.title || 'Project'} expanded />
+      <p className="text-sm text-slate-muted">After uploading a screenshot, choose Save Projects to publish it on the live portfolio.</p>
       <label className="flex items-center gap-2 text-sm text-slate-main"><input type="checkbox" checked={Boolean(project.featured)} onChange={(event) => onChange(projects.map((item, current) => ({ ...item, featured: current === index ? event.target.checked : false })))} /> Feature this project</label>
     </article>)}
   </div>;

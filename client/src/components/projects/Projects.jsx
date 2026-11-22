@@ -4,6 +4,7 @@ import { Github } from '../common/Icons';
 import { useDialogBehavior } from '../../hooks/useDialogBehavior';
 import { withProjectStory } from '../../data/projectStories';
 import { ProjectStory } from './ProjectStory';
+import { ProjectScreenshot } from './ProjectScreenshot';
 
 export const Projects = ({ projectsData }) => {
   const [selectedProject, setSelectedProject] = useState(null);
@@ -338,13 +339,16 @@ export const Projects = ({ projectsData }) => {
                 </div>
               </div>
 
-              <aside className="lg:col-span-5 rounded-2xl border border-midnight-border bg-midnight-elevated/50 p-6 space-y-4">
+              <aside className="lg:col-span-5 space-y-4">
+                <ProjectScreenshot imageUrl={auraProject.imageUrl} title={auraProject.title} onPreview={() => setSelectedProject(auraProject)} />
+                <div className="rounded-2xl border border-midnight-border bg-midnight-elevated/50 p-6 space-y-4">
                 <h4 className="text-lg font-semibold text-slate-main">How it works</h4>
                 <ul className="space-y-3 text-sm text-slate-muted leading-relaxed">
                   {(Array.isArray(auraProject.architecture) ? auraProject.architecture : []).slice(0, 3).map((detail, index) => (
                     <li key={index} className="flex items-start gap-2"><span className="text-cyan" aria-hidden="true">•</span><span>{detail}</span></li>
                   ))}
                 </ul>
+                </div>
               </aside>
             </div>
           </div>
@@ -358,6 +362,9 @@ export const Projects = ({ projectsData }) => {
               className="card-dev rounded-3xl p-6 sm:p-7 flex flex-col justify-between group text-left"
             >
               <div>
+                <div className="mb-5 empty:hidden">
+                  <ProjectScreenshot imageUrl={project.imageUrl} title={project.title} onPreview={() => setSelectedProject(project)} />
+                </div>
                 {/* Header status */}
                 <div className="flex items-center justify-between pb-3 border-b border-midnight-border mb-4 text-xs font-mono-tech">
                   <span className="text-cyan uppercase tracking-wider font-semibold">
@@ -487,6 +494,8 @@ export const Projects = ({ projectsData }) => {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            <ProjectScreenshot imageUrl={selectedProject.imageUrl} title={selectedProject.title} expanded />
 
             {/* Description */}
             <p className="font-sans text-sm sm:text-base text-slate-muted leading-relaxed">
