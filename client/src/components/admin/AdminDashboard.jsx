@@ -14,6 +14,7 @@ import { ChangePassword } from './ChangePassword';
 import { withProjectStory } from '../../data/projectStories';
 import { prepareUpload, validateUpload, uploadErrorMessage } from '../../services/uploadFile';
 import { prepareMediaDetails } from '../../services/mediaDetails';
+import { useDialogBehavior } from '../../hooks/useDialogBehavior';
 
 export const AdminDashboard = () => {
   const { admin, token, isAuthenticated, isAuthLoading, sessionError, retrySession, login, setupAdmin, logout } = useAuth();
@@ -51,6 +52,8 @@ export const AdminDashboard = () => {
   // Toast feedback
   const [toast, setToast] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingMediaDelete, setPendingMediaDelete] = useState(null);
+  const deleteDialogRef = useDialogBehavior(Boolean(pendingMediaDelete), () => setPendingMediaDelete(null));
   const [uploadStatus, setUploadStatus] = useState('');
   const [mediaStatus, setMediaStatus] = useState(null);
   const mediaUploadLock = useRef(false);
@@ -324,9 +327,13 @@ export const AdminDashboard = () => {
     });
   };
 
-  const handleDeleteMediaItem = async (section, item, label) => {
+  const handleDeleteMediaItem = async (section, item, label, confirmed = false) => {
     if (isSaving) return;
-    if (!window.confirm(`Delete this ${label.toLowerCase()} from your portfolio?`)) return;
+    if (!confirmed) {
+      setPendingMediaDelete({ section, item, label });
+      return;
+    }
+    setPendingMediaDelete(null);
 
     const currentItems = Array.isArray(portfolioData?.[section]) ? portfolioData[section] : [];
     const itemIndex = currentItems.indexOf(item);
@@ -641,6 +648,19 @@ export const AdminDashboard = () => {
   // --------------------------------------------------------------------------
   return (
     <div className="admin-dashboard min-h-screen bg-midnight text-slate-main text-left pb-20">
+      {pendingMediaDelete && (
+        <div ref={deleteDialogRef} role="dialog" aria-modal="true" aria-labelledby="media-delete-title" tabIndex={-1}
+          className="fixed inset-0 z-[100] bg-midnight/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md card-dev rounded-2xl p-6 space-y-5">
+            <h2 id="media-delete-title" className="font-heading text-2xl">Delete {pendingMediaDelete.label.toLowerCase()}?</h2>
+            <p className="text-sm break-words">Remove “{pendingMediaDelete.item.title || 'Untitled'}” from your portfolio and delete its uploaded file? This cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button type="button" className="btn-secondary rounded-xl px-4 py-2" onClick={() => setPendingMediaDelete(null)}>Cancel</button>
+              <button type="button" className="btn-primary rounded-xl px-4 py-2" onClick={() => handleDeleteMediaItem(pendingMediaDelete.section, pendingMediaDelete.item, pendingMediaDelete.label, true)}>Delete {pendingMediaDelete.label.toLowerCase()}</button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Toast notification banner */}
       {toast && (
         <div
