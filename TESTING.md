@@ -26,7 +26,7 @@ npm run build
 - Assistant input validation and its built-in fallback when no provider is configured.
 - Speech coordination: About narration and assistant speech cannot overlap; old speech callbacks do not stop a new speaker.
 
-The latest run passed 45 tests (including nested cases), with no failures.
+The latest run passed 46 tests (including nested cases), with no failures.
 
 ## Browser and live-site checks
 

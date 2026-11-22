@@ -13,6 +13,7 @@ import contactRoutes from './routes/contactRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import { configureUploadStorage, uploadsDir } from './middleware/upload.js';
 import { serveAsset } from './services/assetStorage.js';
+import { setAssetHeaders } from './services/assetHeaders.js';
 
 // Local DNS workaround for MongoDB Atlas SRV lookup.
 // Do not override DNS servers in production.
@@ -68,7 +69,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static file serving for uploads
 app.get('/uploads/:filename', serveAsset);
-app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(uploadsDir, {
+  setHeaders: (res, filePath) => {
+    if (filePath.toLowerCase().endsWith('.pdf')) setAssetHeaders(res, 'application/pdf', filePath.split(/[\\/]/).pop());
+  }
+}));
 
 // API Routes
 app.use(['/api/auth', '/api/content', '/api/contact'], async (req, res, next) => {

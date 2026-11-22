@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import fs from 'node:fs';
 import { pipeline } from 'node:stream/promises';
 import { env } from '../config/env.js';
+import { setAssetHeaders } from './assetHeaders.js';
 
 const bucket = () => new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'portfolioAssets' });
 
@@ -27,10 +28,8 @@ export async function serveAsset(req, res, next) {
     const storage = bucket();
     const file = await storage.find({ filename: req.params.filename }).next();
     if (!file) return next();
-    res.setHeader('Content-Type', file.metadata?.contentType || 'application/octet-stream');
+    setAssetHeaders(res, file.metadata?.contentType || 'application/octet-stream', file.filename);
     res.setHeader('Content-Length', file.length);
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    res.setHeader('X-Content-Type-Options', 'nosniff');
     await pipeline(storage.openDownloadStream(file._id), res);
   } catch (error) {
     next(error);

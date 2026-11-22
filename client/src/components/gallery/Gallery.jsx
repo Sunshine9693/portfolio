@@ -111,9 +111,14 @@ export const Gallery = ({ certificatesData, galleryData }) => {
       certificate.fileType?.startsWith('image/') ||
       /\.(jpe?g|png|webp)(?:$|\?)/i.test(certificate.fileUrl);
 
+    const resolvedUrl = resolveAssetUrl(certificate.fileUrl);
+    // Bypass old immutable responses that carried same-origin-only PDF headers.
+    const previewUrl = !isImage
+      ? `${resolvedUrl}${resolvedUrl.includes('?') ? '&' : '?'}preview=2`
+      : resolvedUrl;
     setActivePreview({
       type: isImage ? 'image' : 'pdf',
-      url: resolveAssetUrl(certificate.fileUrl),
+      url: previewUrl,
       title: certificate.title || 'Certificate',
     });
   };
@@ -325,12 +330,20 @@ export const Gallery = ({ certificatesData, galleryData }) => {
             </div>
 
             {/* Modal Content */}
+            {activePreview.type === 'pdf' && (
+              <p className="mb-4 text-sm text-slate-muted">
+                If the preview does not appear on your device,{' '}
+                <a href={activePreview.url} target="_blank" rel="noopener noreferrer" className="text-cyan underline">
+                  Open PDF in a new tab
+                </a>.
+              </p>
+            )}
             <div className="gallery-preview-media flex-1 overflow-hidden rounded-xl bg-midnight flex items-center justify-center min-h-0 sm:min-h-[400px]">
               {activePreview.type === 'pdf' ? (
                 <iframe
                   src={activePreview.url}
                   title={activePreview.title}
-                  className="w-full h-full min-h-[500px] border-0 rounded-xl"
+                  className="w-full h-[60vh] min-h-0 border-0 rounded-xl"
                 />
               ) : activePreview.type === 'video' ? (
                 <video
