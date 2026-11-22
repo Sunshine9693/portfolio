@@ -66,3 +66,15 @@ The supplied failed deployment log stops at `JWT_SECRET must be configured in pr
 The Blueprint now uses `generateValue: true` for `JWT_SECRET` and `ADMIN_SETUP_TOKEN`. Render generates a random value for a missing variable and preserves existing values. Existing Blueprint installations need to sync this change. A manually created service still needs its environment variables configured in the Render dashboard. If a variable already exists with an empty value, replace it with a secure random value in Render; do not commit it to Git.
 
 `MONGODB_URI` must point to the intended portfolio database. The frontend currently targets `portfolio-backend-v8mm.onrender.com`; verify the public URL before switching to a newly created service.
+
+## Project screenshots and uploaded PDF previews — November 22, 2026
+
+Uploaded AURA and Hostel screenshots render on public project cards, in expanded case studies, and in the admin project editor. Full-size image links were checked without publishing changes to the owner's content.
+
+Uploaded PDFs previously returned Helmet's `X-Frame-Options: SAMEORIGIN` and `frame-ancestors 'self'`, blocking the separately hosted portfolio. PDF responses now allow framing by the portfolio origin only, use inline disposition, and revalidate instead of retaining the old immutable headers. The new header integration test also confirms that image and API routes retain their original protections.
+
+The certificate dialog now lazy-loads PDF.js and renders the page directly, avoiding dependence on a browser's built-in PDF viewer. It includes loading/error states, bounded canvas resolution, page navigation for multi-page documents, and a visible link to the original PDF.
+
+Verified on the deployed frontend: uploaded DevFest and AI/ML Launchpad Bootcamp PDFs, all three original static PDF certificates, and the Bihar AI Summit image certificate. All five PDFs rendered visibly; the browser reported no errors or warnings. The backend reported the deployed fix revision with connected database, and uploaded PDF response headers were checked live. Physical-phone testing was not performed; this run's viewport override did not take effect, so no new phone-size visual verification is claimed. The preview uses fluid-width canvases and a bounded scrolling area.
+
+Latest verification: 36 backend tests and 10 frontend tests passed; production build passed. Client dependency audit reported zero vulnerabilities after a compatible transitive dependency update.
