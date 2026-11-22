@@ -53,7 +53,9 @@ Checked with the in-app browser and the local production build:
 
 Responsive checks use browser viewport sizes, not physical phones. Actual microphone permission, speech playback quality, and OS file-provider behavior still depend on the visitor's browser and device. Saved-session restoration, anonymous-access rejection, and incorrect-credential rejection were verified live; fresh sign-in with the owner's current password was not performed.
 
-One clearly labelled synthetic QA inquiry remains in the admin inbox. No personal inquiries or password changes were submitted. Inquiry delivery currently means storage in the admin inbox; email notifications are not configured. Existing portfolio entries were not deleted. The public `admin upload test` gallery card was retained as requested; remove or hide that test card before promoting the portfolio professionally.
+A clearly labelled synthetic QA inquiry was used to verify live delivery and persistence. No personal inquiries or password changes were submitted. Inquiry delivery currently means storage in the admin inbox; email notifications are not configured.
+
+After owner approval, the public `admin upload test` gallery card was removed. Its uploaded file returned 404; the original portrait, the `me` photo, and all three original certificates remained. Media deletion now uses an in-page confirmation instead of a native browser confirmation. Opening that confirmation and cancelling was also checked without deleting another item.
 
 Render's free service can sleep while idle. Recovery logic handles transient failures, but it does not provide an uptime guarantee or remove the hosting plan's cold-start delay.
 
