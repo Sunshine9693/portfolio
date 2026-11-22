@@ -7,6 +7,7 @@ import { defaultPortfolioData } from '../data/defaultPortfolioData.js';
 import { uploadsDir } from '../middleware/upload.js';
 import { persistAsset, deleteStoredAsset } from '../services/assetStorage.js';
 import { env } from '../config/env.js';
+import { buildMediaItem, appendMediaItem } from '../services/managedMedia.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -239,7 +240,40 @@ export const uploadManagedAsset = async (req, res) => {
       });
     }
 
+    let item;
+    let section;
+    let portfolio;
+    if (req.publishMedia) {
+      if (mongoose.connection.readyState !== 1) {
+        removeInvalidUpload(req.file.path);
+        return res.status(503).json({ success: false, message: 'Portfolio storage is reconnecting. Your file is still selected; please try again.' });
+      }
+      try {
+        if (typeof req.body?.metadata !== 'string' || req.body.metadata.length > 10000) throw new Error('Invalid file details.');
+        item = buildMediaItem(req.params.kind, JSON.parse(req.body.metadata), req.file);
+      } catch (error) {
+        removeInvalidUpload(req.file.path);
+        return res.status(400).json({ success: false, message: error.message });
+      }
+      section = req.params.kind === 'photo' ? 'gallery' : 'certificates';
+      portfolio = await PortfolioData.findOne().sort({ updatedAt: -1 });
+      if (!portfolio) portfolio = await PortfolioData.create(defaultPortfolioData);
+      const existing = portfolio[section]?.find(entry => entry.id === item.id);
+      if (existing) {
+        removeInvalidUpload(req.file.path);
+        return res.json({ success: true, section, item: toPlainValue(existing), fileUrl: existing.url || existing.fileUrl });
+      }
+      if (portfolio[section]?.length >= 200) {
+        removeInvalidUpload(req.file.path);
+        return res.status(400).json({ success: false, message: 'This section already has 200 items. Remove an old item before adding another.' });
+      }
+    }
     await persistAsset(req.file);
+    if (req.publishMedia) {
+      const savedItem = await appendMediaItem(PortfolioData, portfolio._id, section, item);
+      return res.status(201).json({ success: true, message: 'File uploaded and published.', section,
+        item: toPlainValue(savedItem), fileUrl: savedItem.url || savedItem.fileUrl });
+    }
     return res.status(201).json({
       success: true,
       message: 'File uploaded successfully.',
@@ -252,7 +286,7 @@ export const uploadManagedAsset = async (req, res) => {
   } catch (error) {
     console.error('uploadManagedAsset error:', error);
     removeInvalidUpload(req.file?.path);
-    return res.status(500).json({ success: false, message: 'The file could not be uploaded.' });
+    return res.status(503).json({ success: false, message: 'The file could not be uploaded and saved. Your file is still selected; please try again.' });
   }
 };
 

@@ -64,9 +64,16 @@ export const PortfolioProvider = ({ children }) => {
     }
   }, []);
 
+  const acceptPublishedMedia = useCallback((section, item) => {
+    if (!['gallery', 'certificates'].includes(section) || !item?.id) return;
+    setData(prev => ({ ...(prev || {}), [section]: [
+      ...(prev?.[section] || []).filter(existing => existing.id !== item.id), item,
+    ] }));
+  }, []);
+
   return (
     <PortfolioContext.Provider
-      value={{ data, isLoading, error, refreshData: fetchPortfolioData, updateSectionData }}
+      value={{ data, isLoading, error, refreshData: fetchPortfolioData, updateSectionData, acceptPublishedMedia }}
     >
       {children}
     </PortfolioContext.Provider>

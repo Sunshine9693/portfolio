@@ -13,10 +13,11 @@ import { FilePicker } from './FilePicker';
 import { ChangePassword } from './ChangePassword';
 import { withProjectStory } from '../../data/projectStories';
 import { prepareUpload, validateUpload, uploadErrorMessage } from '../../services/uploadFile';
+import { prepareMediaDetails } from '../../services/mediaDetails';
 
 export const AdminDashboard = () => {
   const { admin, token, isAuthenticated, isAuthLoading, sessionError, retrySession, login, setupAdmin, logout } = useAuth();
-  const { data: portfolioData, refreshData, updateSectionData } = usePortfolio();
+  const { data: portfolioData, refreshData, updateSectionData, acceptPublishedMedia } = usePortfolio();
 
   // Auth form states
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'setup'
@@ -51,6 +52,9 @@ export const AdminDashboard = () => {
   const [toast, setToast] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
+  const [mediaStatus, setMediaStatus] = useState(null);
+  const mediaUploadLock = useRef(false);
+  const mediaUploadIds = useRef({ photo: '', certificate: '' });
   const toastTimerRef = useRef(null);
 
   const showToast = useCallback((type, message) => {
@@ -226,70 +230,51 @@ export const AdminDashboard = () => {
 
   const uploadAndSaveMedia = async ({ event, file, kind, section, item, onSaved }) => {
     event.preventDefault();
-    if (isSaving) return;
-
-    if (!file) {
-      showToast('error', `Choose a ${kind === 'photo' ? 'photo' : 'certificate file'} first.`);
-      return;
-    }
-
+    if (isSaving || mediaUploadLock.current) return;
+    mediaUploadLock.current = true;
     setIsSaving(true);
-    let fileUrl = '';
 
     try {
+      const id = mediaUploadIds.current[kind] || crypto.randomUUID();
+      mediaUploadIds.current[kind] = id;
+      const metadata = prepareMediaDetails(kind, item, file, id);
+      setMediaStatus({ kind, type: 'progress', message: 'Preparing your file…' });
       const preparedFile = await prepareUpload(file);
       const formData = new FormData();
       formData.append('file', preparedFile);
+      formData.append('metadata', JSON.stringify(metadata));
+      setMediaStatus({ kind, type: 'progress', message: 'Connecting to upload service…' });
       await api.get('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-      const uploadResponse = await api.post(`/api/content/media/${kind}`, formData, {
+      const uploadResponse = await api.post(`/api/content/media/${kind}/publish`, formData, {
         headers: { Authorization: `Bearer ${token}` },
+        onUploadProgress: ({ loaded, total }) => setMediaStatus({ kind, type: 'progress', message:
+          total && loaded >= total ? 'File received. Saving to your portfolio…' : 'Uploading your file…' }),
       });
 
-      fileUrl = uploadResponse.data?.fileUrl || '';
-      if (!uploadResponse.data?.success || !fileUrl) {
+      if (!uploadResponse.data?.success || !uploadResponse.data?.item) {
         throw new Error(uploadResponse.data?.message || 'The file could not be uploaded.');
       }
-
-      const savedItem = section === 'gallery' ? { ...item, url: fileUrl } : { ...item, fileUrl };
-      const existingItems = Array.isArray(portfolioData?.[section]) ? portfolioData[section] : [];
-      const result = await updateSectionData(section, [...existingItems, savedItem], token);
-      if (!result.success) {
-        throw new Error(result.message || 'The uploaded item could not be saved.');
-      }
-
+      acceptPublishedMedia(section, uploadResponse.data.item);
+      mediaUploadIds.current[kind] = '';
       onSaved();
-      await refreshData();
+      setMediaStatus({ kind, type: 'success', message: `${kind === 'photo' ? 'Photo' : 'Certificate'} saved and published successfully.` });
       showToast('success', `${kind === 'photo' ? 'Photo' : 'Certificate'} added successfully.`);
     } catch (error) {
-      if (fileUrl) {
-        try {
-          const filename = fileUrl.split('/').pop();
-          await api.delete(`/api/content/upload/${encodeURIComponent(filename)}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-        } catch (cleanupError) {
-          console.error('Could not clean up an unsaved upload:', cleanupError);
-        }
-      }
-
       if (!isApiCancel(error)) {
+        setMediaStatus({ kind, type: 'error', message: uploadErrorMessage(error) });
         showToast(
           'error',
           uploadErrorMessage(error)
         );
       }
     } finally {
+      mediaUploadLock.current = false;
       setIsSaving(false);
     }
   };
 
   const handleAddCertificate = (event) => {
     const title = certificateDraft.title.trim();
-    if (!title) {
-      event.preventDefault();
-      showToast('error', 'Enter a certificate title first.');
-      return;
-    }
 
     uploadAndSaveMedia({
       event,
@@ -317,11 +302,6 @@ export const AdminDashboard = () => {
 
   const handleAddPhoto = (event) => {
     const title = photoDraft.title.trim();
-    if (!title) {
-      event.preventDefault();
-      showToast('error', 'Enter a photo title first.');
-      return;
-    }
 
     uploadAndSaveMedia({
       event,
@@ -1013,14 +993,15 @@ export const AdminDashboard = () => {
                 </p>
               </div>
 
-              <form onSubmit={handleAddCertificate} className="card-dev rounded-3xl p-6 sm:p-8 space-y-4">
+              <form noValidate onSubmit={handleAddCertificate} className="card-dev rounded-3xl p-6 sm:p-8 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="font-mono-tech text-xs text-slate-muted block mb-1">Certificate title *</label>
+                    <label htmlFor="certificate-title" className="font-mono-tech text-xs text-slate-muted block mb-1">Certificate title (optional)</label>
                     <input
+                      id="certificate-title"
+                      placeholder="Uses the filename if left empty"
                       value={certificateDraft.title}
                       onChange={(e) => setCertificateDraft({ ...certificateDraft, title: e.target.value })}
-                      required
                       maxLength={160}
                       className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
                     />
@@ -1070,8 +1051,8 @@ export const AdminDashboard = () => {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      try { validateUpload(file); setCertificateFile(file); }
-                      catch (error) { setCertificateFile(null); e.target.value = ''; showToast('error', error.message); }
+                      try { validateUpload(file); setCertificateFile(file); mediaUploadIds.current.certificate = ''; setMediaStatus({ kind: 'certificate', type: 'selected', message: 'File selected. Choose Add Certificate below to publish it.' }); }
+                      catch (error) { setCertificateFile(null); e.target.value = ''; setMediaStatus({ kind: 'certificate', type: 'error', message: error.message }); showToast('error', error.message); }
                     }} />
                   <button
                     type="submit"
@@ -1079,10 +1060,11 @@ export const AdminDashboard = () => {
                     className="btn-primary shrink-0 px-5 py-2 rounded-xl text-xs font-mono-tech font-bold uppercase flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <Upload className="w-4 h-4" />
-                    {isSaving ? 'Uploading...' : 'Add Certificate'}
+                    {isSaving && mediaStatus?.kind === 'certificate' ? 'Uploading...' : 'Add Certificate'}
                   </button>
                 </div>
                 {certificateFile && <p role="status" className="text-sm text-slate-main break-all">Selected: {certificateFile.name}</p>}
+                {mediaStatus?.kind === 'certificate' && <p role={mediaStatus.type === 'error' ? 'alert' : 'status'} className={`text-sm p-3 rounded-xl border ${mediaStatus.type === 'error' ? 'border-rose-400 text-rose-800' : 'border-midnight-border text-slate-main'}`}>{mediaStatus.message}</p>}
                 <p className="font-mono-tech text-[10px] text-slate-muted">PDF up to 4 MB · JPG, PNG, or WebP photos up to 30 MB are resized for upload</p>
               </form>
 
@@ -1133,14 +1115,15 @@ export const AdminDashboard = () => {
                 </p>
               </div>
 
-              <form onSubmit={handleAddPhoto} className="card-dev rounded-3xl p-6 sm:p-8 space-y-4">
+              <form noValidate onSubmit={handleAddPhoto} className="card-dev rounded-3xl p-6 sm:p-8 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="font-mono-tech text-xs text-slate-muted block mb-1">Photo title *</label>
+                    <label htmlFor="photo-title" className="font-mono-tech text-xs text-slate-muted block mb-1">Photo title (optional)</label>
                     <input
+                      id="photo-title"
+                      placeholder="Uses the filename if left empty"
                       value={photoDraft.title}
                       onChange={(e) => setPhotoDraft({ ...photoDraft, title: e.target.value })}
-                      required
                       maxLength={160}
                       className="w-full px-3 py-2 rounded-xl bg-midnight-elevated border border-midnight-border text-xs text-slate-main focus:outline-none focus:border-cyan"
                     />
@@ -1171,14 +1154,15 @@ export const AdminDashboard = () => {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      try { validateUpload(file, true); setPhotoFile(file); setPhotoPreview(URL.createObjectURL(file)); }
-                      catch (error) { setPhotoFile(null); setPhotoPreview(''); e.target.value = ''; showToast('error', error.message); }
+                      try { validateUpload(file, true); setPhotoFile(file); setPhotoPreview(URL.createObjectURL(file)); mediaUploadIds.current.photo = ''; setMediaStatus({ kind: 'photo', type: 'selected', message: 'Photo selected. Choose Add Photo below to publish it.' }); }
+                      catch (error) { setPhotoFile(null); setPhotoPreview(''); e.target.value = ''; setMediaStatus({ kind: 'photo', type: 'error', message: error.message }); showToast('error', error.message); }
                     }} />
                   {photoFile && <p role="status" className="text-sm text-slate-main break-all">Selected: {photoFile.name}</p>}
                   {photoPreview && (
                     <img src={photoPreview} alt="Selected photo preview" className="w-full h-28 rounded-xl object-cover border border-midnight-border" />
                   )}
                 </div>
+                {mediaStatus?.kind === 'photo' && <p role={mediaStatus.type === 'error' ? 'alert' : 'status'} className={`text-sm p-3 rounded-xl border ${mediaStatus.type === 'error' ? 'border-rose-400 text-rose-800' : 'border-midnight-border text-slate-main'}`}>{mediaStatus.message}</p>}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <p className="font-mono-tech text-[10px] text-slate-muted">JPG, PNG, or WebP · Large photos are resized automatically (up to 30 MB)</p>
                   <button
@@ -1187,7 +1171,7 @@ export const AdminDashboard = () => {
                     className="btn-primary px-5 py-2 rounded-xl text-xs font-mono-tech font-bold uppercase flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <ImageIcon className="w-4 h-4" />
-                    {isSaving ? 'Uploading...' : 'Add Photo'}
+                    {isSaving && mediaStatus?.kind === 'photo' ? 'Uploading...' : 'Add Photo'}
                   </button>
                 </div>
               </form>

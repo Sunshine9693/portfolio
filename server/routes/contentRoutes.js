@@ -9,6 +9,7 @@ router.get('/', getPublicData);
 router.put('/section', protectAdmin, updateSection);
 router.post('/upload', protectAdmin, uploadSingleFile, uploadAsset);
 router.post('/media/:kind', protectAdmin, uploadManagedFile, uploadManagedAsset);
+router.post('/media/:kind/publish', protectAdmin, (req, res, next) => { req.publishMedia = true; next(); }, uploadManagedFile, uploadManagedAsset);
 router.delete('/upload/:filename', protectAdmin, deleteUploadedAsset);
 
 export default router;
