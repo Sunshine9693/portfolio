@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import {
   Sparkles,
   FileText,
@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { resolveAssetUrl } from '../../services/api';
 import { useDialogBehavior } from '../../hooks/useDialogBehavior';
+
+const PdfPreview = lazy(() => import('./PdfPreview'));
 
 const SafeImage = ({ src, alt, className = '', fallbackClassName = '', preview = false }) => {
   const [imageState, setImageState] = useState({ src, failed: false, ready: false });
@@ -340,11 +342,9 @@ export const Gallery = ({ certificatesData, galleryData }) => {
             )}
             <div className="gallery-preview-media flex-1 overflow-hidden rounded-xl bg-midnight flex items-center justify-center min-h-0 sm:min-h-[400px]">
               {activePreview.type === 'pdf' ? (
-                <iframe
-                  src={activePreview.url}
-                  title={activePreview.title}
-                  className="w-full h-[60vh] min-h-0 border-0 rounded-xl"
-                />
+                <Suspense fallback={<p role="status" className="p-6 text-sm text-slate-muted">Loading PDF viewer…</p>}>
+                  <PdfPreview key={activePreview.url} url={activePreview.url} title={activePreview.title} />
+                </Suspense>
               ) : activePreview.type === 'video' ? (
                 <video
                   src={activePreview.url}
