@@ -71,6 +71,9 @@ const portfolioDataSchema = new mongoose.Schema({
       location: String,
       highlights: [String],
       technologies: [String],
+      certificateUrl: String,
+      certificateType: String,
+      certificateName: String,
     }
   ],
   education: {

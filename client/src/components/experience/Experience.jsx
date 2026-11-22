@@ -1,6 +1,9 @@
-import { Sparkles, Calendar, MapPin, CheckCircle2, Briefcase } from 'lucide-react';
+import { useState } from 'react';
+import { Calendar, MapPin, CheckCircle2, Briefcase, FileText } from 'lucide-react';
+import { CertificateViewer } from '../gallery/CertificateViewer';
 
 export const Experience = ({ internshipsData }) => {
+  const [certificatePreview, setCertificatePreview] = useState(null);
   const defaultInternships = [
     {
       id: 'acmegrade',
@@ -142,12 +145,18 @@ export const Experience = ({ internshipsData }) => {
                     </span>
                   ))}
                 </div>
+                {internship.certificateUrl && (
+                  <button type="button" onClick={() => setCertificatePreview(internship)} aria-label={`View ${internship.company} internship certificate`} className="btn-secondary px-4 py-2 rounded-xl inline-flex items-center gap-2 text-sm">
+                    <FileText size={16} />View certificate
+                  </button>
+                )}
               </div>
             </div>
           ))}
         </div>
         )}
       </div>
+      {certificatePreview && <CertificateViewer url={certificatePreview.certificateUrl} fileType={certificatePreview.certificateType} title={`${certificatePreview.company} certificate`} onClose={() => setCertificatePreview(null)} />}
     </section>
   );
 };

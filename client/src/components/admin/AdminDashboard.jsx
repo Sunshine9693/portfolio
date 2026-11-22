@@ -9,6 +9,7 @@ import { usePortfolio } from '../../context/PortfolioContext';
 import api, { isApiCancel, resolveAssetUrl } from '../../services/api';
 import './AdminDashboard.css';
 import { ProjectEditor } from './ProjectEditor';
+import { InternshipEditor } from './InternshipEditor';
 import { FilePicker } from './FilePicker';
 import { ChangePassword } from './ChangePassword';
 import { withProjectStory } from '../../data/projectStories';
@@ -38,6 +39,7 @@ export const AdminDashboard = () => {
   const [aboutForm, setAboutForm] = useState(null);
   const [skillsForm, setSkillsForm] = useState([]);
   const [projectsForm, setProjectsForm] = useState([]);
+  const [internshipsForm, setInternshipsForm] = useState([]);
   const [certificateFile, setCertificateFile] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
   const [certificateDraft, setCertificateDraft] = useState({ title: '', issuer: '', date: '', description: '', credentialUrl: '' });
@@ -93,6 +95,7 @@ export const AdminDashboard = () => {
     );
     setSkillsForm(Array.isArray(portfolioData.skills) ? portfolioData.skills : []);
     setProjectsForm(Array.isArray(portfolioData.projects) ? portfolioData.projects.map(withProjectStory) : []);
+    setInternshipsForm(Array.isArray(portfolioData.internships) ? portfolioData.internships : []);
   }, [portfolioData]);
 
   // Release the local preview URL when it is replaced or the view unmounts.
@@ -195,7 +198,7 @@ export const AdminDashboard = () => {
       });
 
       if (res.data?.success && res.data.fileUrl) {
-        onComplete(res.data.fileUrl);
+        onComplete(res.data.fileUrl, { type: preparedFile.type, name: file.name });
         setUploadStatus(`${file.name} uploaded. Save this section to publish it.`);
         showToast('success', `File ${file.name} uploaded successfully!`);
       } else {
@@ -735,6 +738,7 @@ export const AdminDashboard = () => {
             { id: 'about', label: 'About & Voice Script' },
             { id: 'skills', label: 'Skills Matrix' },
             { id: 'projects', label: 'Projects Showcase' },
+            { id: 'internships', label: 'Internships' },
             { id: 'media', label: 'Certificates & Photos' },
             { id: 'inbox', label: `Inquiries (${messages.length})` },
             { id: 'security', label: 'Account security' },
@@ -997,6 +1001,16 @@ export const AdminDashboard = () => {
             </div>
 
             <ProjectEditor projects={projectsForm} onChange={setProjectsForm} isSaving={isSaving} onUpload={handleFileUpload} />
+          </div>
+        )}
+
+        {activeTab === 'internships' && (
+          <div className="mt-8 space-y-6 max-w-5xl">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-heading text-2xl text-slate-main tracking-wide uppercase">Internships</h2>
+              <button type="button" onClick={() => saveSection('internships', internshipsForm)} disabled={isSaving} className="btn-primary px-5 py-2 rounded-xl text-sm inline-flex items-center gap-2"><Save size={16} />{isSaving ? 'Saving…' : 'Save Internships'}</button>
+            </div>
+            <InternshipEditor internships={internshipsForm} onChange={setInternshipsForm} isSaving={isSaving} onUpload={handleFileUpload} />
           </div>
         )}
 
