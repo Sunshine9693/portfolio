@@ -17,6 +17,7 @@ test('assistant validates input and remains useful without an external provider'
       assert.equal(res.body.success, true); assert.equal(res.body.sectionLink, link);
       assert.equal(res.body.isLiveLLM, false);
       assert.doesNotMatch(res.body.reply, /flagship/i);
+      assert.doesNotMatch(res.body.reply, /\*\*Phone:|\b\d{10}\b/);
       assert.doesNotMatch(res.body.infoNotice, /API_KEY/);
     }
   } finally { [env.openaiApiKey, env.geminiApiKey, env.openrouterApiKey] = keys; }

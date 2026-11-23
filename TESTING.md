@@ -26,7 +26,7 @@ npm run build
 - Assistant input validation and its built-in fallback when no provider is configured.
 - Speech coordination: About narration and assistant speech cannot overlap; old speech callbacks do not stop a new speaker.
 
-The latest run passed 47 tests (including nested cases), with no failures.
+The latest run passed 48 tests (including nested cases), with no failures.
 
 ## Browser and live-site checks
 
@@ -86,3 +86,9 @@ Admin now includes an Internships tab with a PDF/image picker for each entry, or
 An isolated localhost API with in-memory uploads exercised the actual browser file picker: PDF upload, admin preview, save, public preview after navigation, replacement with a PNG, save, and public image preview. These test attachments were never published to production. The controller/model regression test verifies PDF and image metadata survive section save and public read, existing highlights/technologies and other internships are preserved, and an attachment can be cleared without removing the internship.
 
 The live authenticated admin displayed all three company-specific upload controls without console errors. Vercel deployed the frontend successfully; Render health reported revision 864d341 with the database connected. Automated checks: 37 server tests and 10 client tests passed; production build passed. The owner still needs to select and save her actual internship certificates.
+
+## Contact number privacy — November 23, 2026
+
+Removed the public contact phone card and call link, phone fallbacks in seeded data/schema, and phone details from the assistant's knowledge base and fallback contact answer. Public content responses omit legacy phone fields from database and cached records. This does not modify the uploaded resume document.
+
+Validation: 38 backend tests and 10 frontend tests passed; production build passed. The new regression test checks that legacy phone fields are absent from both database-backed and fallback public content while email remains available; the assistant test also rejects phone-number contact answers.

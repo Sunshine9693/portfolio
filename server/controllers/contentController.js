@@ -97,20 +97,26 @@ const validateSectionPayload = (section, data) => {
 };
 
 export const getPublicData = async (req, res) => {
+  const publicData = value => {
+    const data = toPlainValue(value);
+    // Old database records and local caches can still contain a private number.
+    if (data.socialLinks) delete data.socialLinks.phone;
+    return data;
+  };
   try {
     if (mongoose.connection.readyState === 1) {
       let data = await PortfolioData.findOne().sort({ updatedAt: -1 });
       if (!data) {
         data = await PortfolioData.create(defaultPortfolioData);
       }
-      return res.json({ success: true, data });
+      return res.json({ success: true, data: publicData(data) });
     }
 
     // Graceful fallback to in-memory/file cached data if DB is offline
-    return res.json({ success: true, data: inMemoryData, isCachedFallback: true });
+    return res.json({ success: true, data: publicData(inMemoryData), isCachedFallback: true });
   } catch (error) {
     console.error('getPublicData error:', error);
-    return res.json({ success: true, data: inMemoryData, isCachedFallback: true });
+    return res.json({ success: true, data: publicData(inMemoryData), isCachedFallback: true });
   }
 };
 

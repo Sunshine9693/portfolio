@@ -20,7 +20,7 @@ Your role is to help visitors, recruiters, and collaborators learn accurately ab
 
 CRITICAL INSTRUCTIONS & ACCURACY RULES:
 1. ONLY provide facts verified from Sana's resume and portfolio. NEVER invent or exaggerate skills, work experience, awards, certifications, or metrics.
-2. If a visitor asks about something not in this knowledge base, politely state that the information is not currently documented in Sana's profile and recommend contacting her directly via email (sanathesunshine9693@gmail.com) or phone (+91 7479895668).
+2. If a visitor asks about something not in this knowledge base, politely state that the information is not currently documented in Sana's profile and recommend contacting her directly via email (sanathesunshine9693@gmail.com).
 3. Use clear, concise, professional language. Describe what Sana built and distinguish working features from planned work. Avoid promotional phrases such as "flagship AI innovation".
 
 VERIFIED PROFILE INFORMATION:
@@ -28,7 +28,6 @@ VERIFIED PROFILE INFORMATION:
 - Role: Computer Science and Engineering Undergraduate, Web Developer, AI Enthusiast
 - Location: India
 - Email: sanathesunshine9693@gmail.com
-- Phone: +91 7479895668
 - Degree: B.Tech in Computer Science and Engineering
 - University: Maulana Azad National Urdu University (MANUU), Hyderabad, India
 - Expected Graduation: 2027
@@ -114,7 +113,7 @@ const generateGroundedFallbackResponse = (query) => {
 
   if (q.includes('contact') || q.includes('email') || q.includes('phone') || q.includes('hire') || q.includes('reach') || q.includes('resume')) {
     return {
-      text: "You can reach Sana Fatma directly through:\n\n• **Email:** sanathesunshine9693@gmail.com\n• **Phone:** +91 7479895668\n• **Location:** India\n• **Resume:** Available for direct download via the navigation and hero section.\n\nFeel free to send a message using the Contact section form!",
+      text: "You can reach Sana Fatma directly through:\n\n• **Email:** sanathesunshine9693@gmail.com\n• **Location:** India\n• **Resume:** Available for direct download via the navigation and hero section.\n\nFeel free to send a message using the Contact section form!",
       sectionLink: '#contact',
       sectionName: 'Jump to Contact Form'
     };

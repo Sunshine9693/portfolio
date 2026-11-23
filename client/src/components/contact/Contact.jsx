@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Mail, Phone, MapPin, Send, FileDown, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mail, MapPin, Send, FileDown, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Github, Linkedin } from '../common/Icons';
 import api, { isApiCancel, resolveAssetUrl } from '../../services/api';
 
@@ -25,7 +25,6 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
   const isSubmittingRef = useRef(false);
 
   const email = socialLinksData?.email || 'sanathesunshine9693@gmail.com';
-  const phone = socialLinksData?.phone || '+91 7479895668';
   const github = socialLinksData?.github || 'https://github.com/Sunshine9693';
   const linkedin = socialLinksData?.linkedin || 'https://www.linkedin.com/in/sana-fatma-a00b49294/';
   const location = socialLinksData?.location || 'Hyderabad, India';
@@ -159,24 +158,6 @@ export const Contact = ({ socialLinksData, resumeUrl }) => {
                     </span>
                     <span className="font-sans text-sm sm:text-base text-slate-main group-hover:text-cyan transition-colors font-medium break-all">
                       {email}
-                    </span>
-                  </div>
-                </a>
-
-                {/* Phone Link */}
-                <a
-                  href={`tel:${phone.replace(/[^\d+]/g, '')}`}
-                  className="flex items-start gap-4 p-4 rounded-2xl bg-midnight-elevated border border-midnight-border hover:border-cyan/50 transition-colors group"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-midnight-card border border-indigo/30 flex items-center justify-center text-indigo shrink-0">
-                    <Phone className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="font-mono-tech text-[10px] text-slate-muted uppercase tracking-wider block">
-                      Phone
-                    </span>
-                    <span className="font-sans text-sm sm:text-base text-slate-main group-hover:text-cyan transition-colors font-medium">
-                      {phone}
                     </span>
                   </div>
                 </a>

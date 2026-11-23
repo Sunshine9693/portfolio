@@ -426,7 +426,6 @@ export const defaultPortfolioData = {
   ],
   socialLinks: {
     email: 'sanathesunshine9693@gmail.com',
-    phone: '+91 7479895668',
     location: 'India',
     github: 'https://github.com/Sunshine9693',
     linkedin: 'https://www.linkedin.com/in/sana-fatma-a00b49294/'
